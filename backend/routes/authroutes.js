@@ -1,41 +1,45 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/user'); 
+const User = require('../models/user');
 
-
+// GETAPI
 router.get('/getUsers', async (req, res) => {
   try {
-    const data = await User.find();
-    res.status(200).json(data);
+    const users = await User.find(); 
+    res.status(200).json(users);
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error');
+    console.error( err);
+    res.status(500).json({ message: ' error while fetching users' });
   }
 });
 
-router.post('/createUser',async(req,res)=>{
-  try{
-    const {name,email,password,location} = req.body
-    if(!name || !email || !password || !location){
-         return res.status(404).send("all fields are required")
-    }
-    const found = await User.findOne({email})
-    if(found){
-      return res.status(400).json({
-      message :  "user already exists"
-      })
-    }
-  const newUser  = new User(req.body)
-  await newUser.save()
-  res.status(200).json({
-    message:"done"
-  })
-  }
-  catch(e){
-    console.log(e)
-    process.exit(1)
-  }
+// POSTAPI
+router.post('/createUser', async (req, res) => {
+  try {
+    let { name, email, password, location } = req.body;
 
-})
+
+    if (!name || !email || !password || !location) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(409).json({ message: 'User already exists with this email' });
+    }
+
+    const newUser = new User({ name, email, password, location });
+    await newUser.save();
+
+    res.status(201).json({
+      message: 'User created successfully',
+     
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 module.exports = router;
