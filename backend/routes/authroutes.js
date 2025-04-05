@@ -42,4 +42,30 @@ router.post('/createUser', async (req, res) => {
   }
 });
 
+router.put('/updateUser/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { name, email, password, location } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, email, password, location },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      message: 'User updated successfully',
+      
+    });
+  } catch (error) {
+    console.error( error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
 module.exports = router;
