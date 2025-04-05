@@ -1,0 +1,21 @@
+meta {
+  name: postApi
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3516/auth/createUser
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name" : "henry",
+    "email" : "jdan.jdnj",
+    "password" : "dvjndvjnds",
+    "location" : " hfbhf"
+    
+  }
+}
