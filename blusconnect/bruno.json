@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "blusconnect",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
