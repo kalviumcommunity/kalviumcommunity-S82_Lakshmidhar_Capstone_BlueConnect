@@ -41,7 +41,7 @@ router.post('/createUser', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
+// PutApi used
 router.put('/updateUser/:id', async (req, res) => {
   try {
     const userId = req.params.id;
