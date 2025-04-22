@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Phone, PenLine } from "lucide-react";
+import { User, Mail, Phone, PenLine, MapPin, Briefcase, Camera } from "lucide-react";
 
 const WorkerSignup = () => {
   const [formData, setFormData] = useState({
@@ -8,10 +8,16 @@ const WorkerSignup = () => {
     email: "",
     mobile: "",
     description: "",
+    category: "",
+    location: "",
+    profilePicture: null,
   });
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleFileChange = (e) =>
+    setFormData({ ...formData, profilePicture: e.target.files[0] });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -67,6 +73,34 @@ const WorkerSignup = () => {
               required
             />
           </div>
+          <div className="flex items-center border px-3 py-2 rounded shadow-sm">
+            <Briefcase className="text-gray-400 mr-2" />
+            <select
+              name="category"
+              onChange={handleChange}
+              className="w-full outline-none"
+              required
+            >
+              <option value="">Select Category</option>
+              <option value="Electrician">Electrician</option>
+              <option value="Mason">Mason</option>
+              <option value="Plumber">Plumber</option>
+              <option value="Carpenter">Carpenter</option>
+              <option value="Security">Security</option>
+              {/* Add more categories as needed */}
+            </select>
+          </div>
+          <div className="flex items-center border px-3 py-2 rounded shadow-sm">
+            <MapPin className="text-gray-400 mr-2" />
+            <input
+              type="text"
+              name="location"
+              placeholder="Location (City/Area)"
+              onChange={handleChange}
+              className="w-full outline-none"
+              required
+            />
+          </div>
           <div className="flex items-start border px-3 py-2 rounded shadow-sm">
             <PenLine className="text-gray-400 mr-2 mt-1" />
             <textarea
@@ -76,6 +110,16 @@ const WorkerSignup = () => {
               rows={3}
               className="w-full outline-none resize-none"
               required
+            />
+          </div>
+          <div className="flex items-center border px-3 py-2 rounded shadow-sm">
+            <Camera className="text-gray-400 mr-2" />
+            <input
+              type="file"
+              name="profilePicture"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full outline-none"
             />
           </div>
           <button

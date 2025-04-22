@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import workersData from "../data/workersData"; // 💡 your worker mock data here
+import WorkersData from "../data/WorkersData"; // 💡 your worker mock data here
 
 const categories = ["All", "Electrician", "Plumber", "Carpenter", "Mason", "Security"];
 
@@ -18,7 +18,7 @@ const Workers = () => {
   }, [searchTerm, activeCategory]);
 
   const filterWorkers = () => {
-    let filtered = workersData;
+    let filtered = WorkersData;
 
     if (activeCategory !== "All") {
       filtered = filtered.filter(worker => worker.category === activeCategory);
@@ -104,4 +104,3 @@ const Workers = () => {
 };
 
 export default Workers;
-yeah

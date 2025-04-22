@@ -69,6 +69,17 @@ const Signup = () => {
           >
             Signup
           </button>
+
+          {/* New Worker Signup Button */}
+          <div className="flex justify-center mt-3">
+            <Link
+              to="/signup/worker"
+              className="text-blue-600 font-medium hover:underline"
+            >
+              Signup as a Worker
+            </Link>
+          </div>
+
           <p className="text-center text-sm text-gray-500 mt-2">
             Already have an account?{" "}
             <Link to="/login" className="text-blue-600 font-medium hover:underline">
