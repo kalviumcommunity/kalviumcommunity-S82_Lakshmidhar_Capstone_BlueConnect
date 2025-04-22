@@ -5,13 +5,19 @@ const cors = require('cors')
 const PORT = process.env.Port
 app.use(cors())
 app.use(express.json())
-const router = require('./routes/authroutes')
+const userRoutes = require("./routes/authroutes");
+const workerRoutes = require("./routes/workerRoutes");
+const jobRoutes = require("./routes/jobRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const db = require('./db/db')
 db()
 
 
 
-app.use("/auth",router)
+app.use("/api/users", userRoutes);
+app.use("/api/workers", workerRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.listen(PORT, () => {
     
