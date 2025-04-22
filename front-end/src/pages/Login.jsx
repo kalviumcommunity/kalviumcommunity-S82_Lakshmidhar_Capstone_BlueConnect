@@ -1,17 +1,39 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Mail } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Logging in:", formData);
+
+    try {
+      const res = await fetch("http://localhost:3516/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Login failed");
+      } else {
+        alert("Login successful!");
+        // You can save this user info in state, context, or localStorage
+        console.log(data.user);
+        navigate("/dashboard"); // Redirect to dashboard or homepage
+      }
+    } catch (err) {
+      alert("Something went wrong. Please try again.");
+      console.error(err);
+    }
   };
 
   return (
@@ -60,7 +82,10 @@ const Login = () => {
           </button>
           <p className="text-center text-sm text-gray-500 mt-2">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-blue-600 font-medium hover:underline">
+            <Link
+              to="/signup"
+              className="text-blue-600 font-medium hover:underline"
+            >
               Signup
             </Link>
           </p>
