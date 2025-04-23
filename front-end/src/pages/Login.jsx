@@ -90,6 +90,12 @@ const Login = () => {
             </Link>
           </p>
         </form>
+        <button
+  onClick={() => window.location.href = "http://localhost:3516/auth/google"}
+  className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition mt-2"
+>
+  Sign in with Google
+</button>
       </motion.div>
     </motion.div>
   );
