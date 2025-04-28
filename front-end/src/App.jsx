@@ -1,33 +1,37 @@
-import { Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Workers from './pages/Workers';
-import WorkerDetails from './pages/WorkerDetails';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import React from 'react';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import WorkerSignup from './pages/WorkerSignup';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import JobsList from "./pages/JobsList";
+import WorkersList from "./pages/WorkersList";
+import JobDetails from "./pages/JobDetails";
+import WorkerDetails from "./pages/WrokerDetails";
+import NotFound from "./pages/NotFound";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import React from "react";
+import Login from "./pages/Login";
+import SignUp from "./pages/Signup";
 
-function App() {
+const App = () => {
   return (
-    <>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/workers" element={<Workers />} />
-        <Route path="/workers/:id" element={<WorkerDetails />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/signup/worker" element={<WorkerSignup />} />
-      </Routes>
-      <Footer />
-    </>
+    <Router>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login/>} />
+            <Route path="/signup" element={<SignUp/>} />
+            <Route path="/jobs" element={<JobsList />} />
+            <Route path="/workers" element={<WorkersList />} />
+            <Route path="/jobs/:id" element={<JobDetails />} />
+            <Route path="/workers/:id" element={<WorkerDetails />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;

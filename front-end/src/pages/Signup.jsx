@@ -1,102 +1,178 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, Lock, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 
-const Signup = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+const blueCollarSkills = [
+  { value: 'Plumber', label: 'Plumber' },
+  { value: 'Electrician', label: 'Electrician' },
+  { value: 'Carpenter', label: 'Carpenter' },
+  { value: 'Mason', label: 'Mason' },
+  { value: 'Painter', label: 'Painter' },
+  { value: 'Welder', label: 'Welder' },
+  { value: 'Driver', label: 'Driver' },
+  { value: 'Gardener', label: 'Gardener' },
+  { value: 'Chef', label: 'Chef' },
+  { value: 'Security Guard', label: 'Security Guard' },
+  { value: 'Housekeeper', label: 'Housekeeper' },
+  { value: 'Construction Worker', label: 'Construction Worker' },
+  { value: 'Laborer', label: 'Laborer' },
+  { value: 'HVAC Technician', label: 'HVAC Technician' },
+  { value: 'Mechanic', label: 'Mechanic' },
+  { value: 'Beautician', label: 'Beautician' },
+  { value: 'Tailor', label: 'Tailor' }
+];
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+const SignUp = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('user'); // Default to 'user'
+  const [extraFields, setExtraFields] = useState({ company: '', skills: [] });
+
+  const navigate = useNavigate();
+
+ 
+  const handleRoleChange = (e) => {
+    const selectedRole = e.target.value;
+    setRole(selectedRole);
+    setExtraFields(selectedRole === 'worker' ? { skills: [] } : { company: '', skills: [] });
+  };
+
+  const handleSkillChange = (selectedOptions) => {
+    setExtraFields((prevFields) => ({ ...prevFields, skills: selectedOptions }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Signing up:", formData);
+    if (password !== confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+   
+    console.log({ email, password, role, extraFields });
+
+    
+    toast.success('Registration successful!');
+    navigate('/login');  
   };
 
   return (
-    <motion.div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-r from-white to-blue-100 px-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <motion.div
-        className="w-full max-w-md bg-white p-8 rounded-lg shadow-md"
-        initial={{ y: 50 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">
-          Create Account ✨
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex items-center border rounded px-3 py-2 shadow-sm">
-            <User className="text-gray-400 mr-2" />
+    <div className="container mx-auto px-4 py-12">
+      <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+          <input
+            type="password"
+            placeholder="Confirm your password"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Select Your Role</label>
+          <div className="flex items-center space-x-4">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                value="user"
+                checked={role === 'user'}
+                onChange={handleRoleChange}
+                className="form-radio"
+              />
+              <span className="ml-2">User (Employer)</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                value="worker"
+                checked={role === 'worker'}
+                onChange={handleRoleChange}
+                className="form-radio"
+              />
+              <span className="ml-2">Worker</span>
+            </label>
+          </div>
+        </div>
+
+       
+        {role === 'worker' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+            <Select
+              isMulti
+              name="skills"
+              options={blueCollarSkills}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              value={extraFields.skills}
+              onChange={handleSkillChange}
+              getOptionLabel={(e) => e.label} 
+              getOptionValue={(e) => e.value} 
+              placeholder="Select your skills"
+            />
+            <p className="text-sm text-gray-500 mt-2">Hold 'Ctrl' (or 'Cmd' on Mac) to select multiple skills</p>
+          </div>
+        )}
+
+        {role === 'user' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
             <input
               type="text"
-              name="name"
-              placeholder="Full Name"
+              placeholder="Enter your company name"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={extraFields.company}
+              onChange={(e) => setExtraFields({ ...extraFields, company: e.target.value })}
               required
-              onChange={handleChange}
-              className="w-full outline-none"
             />
           </div>
-          <div className="flex items-center border rounded px-3 py-2 shadow-sm">
-            <Mail className="text-gray-400 mr-2" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              required
-              onChange={handleChange}
-              className="w-full outline-none"
-            />
-          </div>
-          <div className="flex items-center border rounded px-3 py-2 shadow-sm">
-            <Lock className="text-gray-400 mr-2" />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              required
-              onChange={handleChange}
-              className="w-full outline-none"
-            />
-          </div>
+        )}
+
+        
+        <div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
-            Signup
+            Sign Up
           </button>
-
-          {/* New Worker Signup Button */}
-          <div className="flex justify-center mt-3">
-            <Link
-              to="/signup/worker"
-              className="text-blue-600 font-medium hover:underline"
-            >
-              Signup as a Worker
-            </Link>
-          </div>
-
-          <p className="text-center text-sm text-gray-500 mt-2">
-            Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 font-medium hover:underline">
-              Login
-            </Link>
-          </p>
-        </form>
-        <button
-  onClick={() => window.location.href = "http://localhost:3516/auth/google"}
-  className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition mt-2"
->
-  Sign in with Google
-</button>
-
-      </motion.div>w
-    </motion.div>
+        </div>
+      </form>
+    </div>
   );
 };
 
-export default Signup;
+export default SignUp;

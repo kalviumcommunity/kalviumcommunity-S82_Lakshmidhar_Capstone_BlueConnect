@@ -1,103 +1,72 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Lock, Mail } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    try {
-      const res = await fetch("http://localhost:3516/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Login failed");
-      } else {
-        alert("Login successful!");
-        // You can save this user info in state, context, or localStorage
-        console.log(data.user);
-        navigate("/dashboard"); // Redirect to dashboard or homepage
-      }
-    } catch (err) {
-      alert("Something went wrong. Please try again.");
-      console.error(err);
-    }
+    // Simulate login process
+    setTimeout(() => {
+      setIsSubmitting(false);
+      toast.success('Logged in successfully!');
+      // Redirect to the home page or dashboard
+    }, 1500);
   };
 
   return (
-    <motion.div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-100 to-white px-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <motion.div
-        className="w-full max-w-md bg-white p-8 rounded-lg shadow-md"
-        initial={{ y: 40 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">
-          Welcome Back 👋
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex items-center border rounded px-3 py-2 shadow-sm">
-            <Mail className="text-gray-400 mr-2" />
+    <div className="container mx-auto px-4 py-12">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden max-w-md mx-auto p-6">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
             <input
               type="email"
-              name="email"
-              placeholder="Email"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              onChange={handleChange}
-              className="w-full outline-none"
             />
           </div>
-          <div className="flex items-center border rounded px-3 py-2 shadow-sm">
-            <Lock className="text-gray-400 mr-2" />
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
-              name="password"
-              placeholder="Password"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
-              onChange={handleChange}
-              className="w-full outline-none"
             />
           </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            className={`w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isSubmitting}
           >
-            Login
+            {isSubmitting ? 'Logging in...' : 'Login'}
           </button>
-          <p className="text-center text-sm text-gray-500 mt-2">
-            Don't have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-blue-600 font-medium hover:underline"
-            >
-              Signup
+        </form>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-blue-600 hover:text-blue-800 font-medium">
+              Sign Up
             </Link>
           </p>
-        </form>
-        <button
-  onClick={() => window.location.href = "http://localhost:3516/auth/google"}
-  className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition mt-2"
->
-  Sign in with Google
-</button>
-      </motion.div>
-    </motion.div>
+        </div>
+      </div>
+    </div>
   );
 };
 
