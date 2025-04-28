@@ -1,14 +1,14 @@
-// models/User.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  phone: String,
-  role: { type: String, enum: ["user", "worker"], default: "user" },
-  address: String,
-  createdAt: { type: Date, default: Date.now },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ['user', 'worker'], required: true },
+  company: { type: String, required: function() { return this.role === 'user'; }, default: '' }, // Company name for employers
+  skills: { type: [String], required: function() { return this.role === 'worker'; }, default: [] }, // Skills for workers
+  dateJoined: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
