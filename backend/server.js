@@ -1,44 +1,26 @@
-const express = require('express');
-require('dotenv').config();
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db");
+
+const authRoutes = require("./routes/authRoutes");
+const jobRoutes = require("./routes/jobRoutes");
+const workerRoutes = require("./routes/workerRoutes");
+
+dotenv.config();
+connectDB();
+
 const app = express();
-const cors = require('cors');
-const session = require('express-session');
-const passport = require('passport');
-require('./auth/passport'); // Make sure this path is correct
-
-const PORT = process.env.PORT || 3516;
-
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
-}));
-
+app.use(cors());
 app.use(express.json());
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-const db = require('./db/db');
-db();
-
-const userRoutes = require("./routes/authroutes");
-const workerRoutes = require("./routes/workerRoutes");
-const jobRoutes = require("./routes/jobRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const googleAuthRoutes = require("./routes/googleAuthRoutes");
-
-app.use("/api/users", userRoutes);
-app.use("/api/workers", workerRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/auth/google", googleAuthRoutes);
+app.use("/api/workers", workerRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.get("/", (req, res) => {
+  res.send("API is running...");
 });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
