@@ -1,10 +1,9 @@
 import express from "express";
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import generateToken from '../utils/generateToken.js';
 
 const router = express.Router();
-
-
 
 router.post('/signup', async (req, res) => {
   try {
@@ -28,9 +27,9 @@ router.post('/signup', async (req, res) => {
       role,
     };
 
-    // Attach company or skills based on role
+    
     if (role === 'worker' && Array.isArray(extraFields?.skills)) {
-      newUserData.skills = extraFields.skills.map((s) => s.value || s); // handle both formats
+      newUserData.skills = extraFields.skills.map((s) => s.value || s);
     }
 
     if (role === 'user' && extraFields?.company) {
@@ -40,13 +39,18 @@ router.post('/signup', async (req, res) => {
     const newUser = new User(newUserData);
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully!' });
+    res.status(201).json({
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      token: generateToken(newUser._id),
+    });
   } catch (err) {
     console.error('Signup Error:', err);
     res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 });
-
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -65,6 +69,7 @@ router.post("/login", async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      token: generateToken(user._id),
     });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });

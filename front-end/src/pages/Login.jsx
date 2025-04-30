@@ -19,13 +19,12 @@ const Login = () => {
         password,
       });
 
-     
-      
+      const { token } = response.data;
+      localStorage.setItem('authToken', token);
 
       setIsSubmitting(false);
       toast.success('Logged in successfully!');
-      navigate('/'); w
-
+      navigate('/');
     } catch (err) {
       setIsSubmitting(false);
       toast.error('Login failed! Please check your credentials.');

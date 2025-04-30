@@ -62,8 +62,11 @@ const SignUp = () => {
 
       const res = await axios.post('http://localhost:3516/api/auth/signup', data);
 
+      const { token } = res.data;
+      localStorage.setItem('authToken', token);
+
       toast.success('Registration successful!');
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       const message = err?.response?.data?.message || 'Registration failed! Please try again.';
       toast.error(message);
@@ -74,7 +77,6 @@ const SignUp = () => {
     <div className="container mx-auto px-4 py-12 max-w-xl">
       <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
           <input
