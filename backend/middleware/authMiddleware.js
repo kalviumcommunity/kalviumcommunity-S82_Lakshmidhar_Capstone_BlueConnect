@@ -1,21 +1,39 @@
-
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
-
-const protect = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
-  }
+router.post("/signup", async (req, res) => {
+  const { name, email, password, role, extraFields } = req.body;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select("-password");
-    next();
-  } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
-  }
-};
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already exists" });
 
-export default protect;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userData = {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    };
+
+   
+    if (role === "worker" && extraFields.skills) {
+      userData.skills = extraFields.skills.map((s) => s.value);
+    }
+    if ((role === "user" || role === "employer") && extraFields.company) {
+      userData.company = extraFields.company;
+    }
+
+    const newUser = await User.create(userData);
+
+    res.status(201).json({
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      skills: newUser.skills,
+      company: newUser.company,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Signup failed", error: err.message });
+  }
+});

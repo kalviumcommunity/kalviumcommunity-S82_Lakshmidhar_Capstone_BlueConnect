@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate login process
-    setTimeout(() => {
+    try {
+      const response = await axios.post('http://localhost:3516/api/auth/login', {
+        email,
+        password,
+      });
+
+     
+      
+
       setIsSubmitting(false);
       toast.success('Logged in successfully!');
-      // Redirect to the home page or dashboard
-    }, 1500);
+      navigate('/'); w
+
+    } catch (err) {
+      setIsSubmitting(false);
+      toast.error('Login failed! Please check your credentials.');
+    }
   };
 
   return (

@@ -5,35 +5,49 @@ import bcrypt from 'bcryptjs';
 const router = express.Router();
 
 
-router.post("/signup", async (req, res) => {
-  const { name, email, password, role } = req.body;
 
+router.post('/signup', async (req, res) => {
   try {
+    const { name, email, password, role, extraFields } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "Email already exists" });
+    if (existingUser) {
+      return res.status(409).json({ message: 'User already exists with this email.' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const newUserData = {
       name,
       email,
       password: hashedPassword,
       role,
-    });
+    };
 
-    res.status(201).json({
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    });
+    // Attach company or skills based on role
+    if (role === 'worker' && Array.isArray(extraFields?.skills)) {
+      newUserData.skills = extraFields.skills.map((s) => s.value || s); // handle both formats
+    }
+
+    if (role === 'user' && extraFields?.company) {
+      newUserData.company = extraFields.company;
+    }
+
+    const newUser = new User(newUserData);
+    await newUser.save();
+
+    res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
-    res.status(500).json({ message: "Signup failed", error: err.message });
+    console.error('Signup Error:', err);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 });
 
-cd 
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 

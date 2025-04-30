@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
+import axios from 'axios';
 
 const blueCollarSkills = [
   { value: 'Plumber', label: 'Plumber' },
@@ -24,15 +25,15 @@ const blueCollarSkills = [
 ];
 
 const SignUp = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('user'); // Default to 'user'
+  const [role, setRole] = useState('user');
   const [extraFields, setExtraFields] = useState({ company: '', skills: [] });
 
   const navigate = useNavigate();
 
- 
   const handleRoleChange = (e) => {
     const selectedRole = e.target.value;
     setRole(selectedRole);
@@ -40,28 +41,52 @@ const SignUp = () => {
   };
 
   const handleSkillChange = (selectedOptions) => {
-    setExtraFields((prevFields) => ({ ...prevFields, skills: selectedOptions }));
+    setExtraFields((prev) => ({ ...prev, skills: selectedOptions }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
-   
-    console.log({ email, password, role, extraFields });
 
-    
-    toast.success('Registration successful!');
-    navigate('/login');  
+    try {
+      const data = {
+        name,
+        email,
+        password,
+        role,
+        extraFields,
+      };
+
+      const res = await axios.post('http://localhost:3516/api/auth/signup', data);
+
+      toast.success('Registration successful!');
+      navigate('/login');
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Registration failed! Please try again.';
+      toast.error(message);
+    }
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
+    <div className="container mx-auto px-4 py-12 max-w-xl">
+      <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
@@ -74,7 +99,6 @@ const SignUp = () => {
           />
         </div>
 
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <input
@@ -87,7 +111,6 @@ const SignUp = () => {
           />
         </div>
 
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
           <input
@@ -100,7 +123,6 @@ const SignUp = () => {
           />
         </div>
 
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Select Your Role</label>
           <div className="flex items-center space-x-4">
@@ -127,7 +149,6 @@ const SignUp = () => {
           </div>
         </div>
 
-       
         {role === 'worker' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
@@ -139,11 +160,9 @@ const SignUp = () => {
               classNamePrefix="select"
               value={extraFields.skills}
               onChange={handleSkillChange}
-              getOptionLabel={(e) => e.label} 
-              getOptionValue={(e) => e.value} 
               placeholder="Select your skills"
             />
-            <p className="text-sm text-gray-500 mt-2">Hold 'Ctrl' (or 'Cmd' on Mac) to select multiple skills</p>
+            <p className="text-sm text-gray-500 mt-2">Hold 'Ctrl' (or 'Cmd') to select multiple</p>
           </div>
         )}
 
@@ -161,7 +180,6 @@ const SignUp = () => {
           </div>
         )}
 
-        
         <div>
           <button
             type="submit"
