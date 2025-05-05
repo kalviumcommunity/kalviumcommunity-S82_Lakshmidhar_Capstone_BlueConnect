@@ -2,7 +2,10 @@ import express from "express";
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
-
+import nodemailer from "nodemailer"
+import sendMail from "../utils/mail.js";
+import crypto from 'crypto';
+const otpStore = new Map();
 const router = express.Router();
 
 // ------------------ Signup ------------------
@@ -31,6 +34,7 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
       role,
     };
+    const otp = crypto.randomInt(100000, 999999).toString();
 
     if (role === "worker" && Array.isArray(extraFields?.skills)) {
       userData.skills = extraFields.skills.map((s) => (typeof s === 'string' ? s : s.value));
@@ -39,8 +43,18 @@ router.post("/signup", async (req, res) => {
     if (role === "user" && extraFields?.company) {
       userData.company = extraFields.company;
     }
+    otpStore.set(email, {
+      otp,
+      name,
+      expiresAt: Date.now() + 3 * 60 * 1000,
+    });
 
     const user = new User(userData);
+    try {
+      await sendOTP(email, otp);
+    } catch (e) {
+      return res.status(500).json({ message: 'Failed to send OTP', error: e.message });
+    }
     await user.save();
 
     // Return token
@@ -94,5 +108,24 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Login failed", error: err.message });
   }
 });
+
+
+async function sendOTP(email, otp) {
+  const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.ADMIN_NAME,
+      pass: process.env.ADMIN_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `Eventhon <${process.env.ADMIN_NAME}>`,
+    to: email,
+    subject: "Your OTP for Signup in Eventhon",
+    text: `Your OTP is: ${otp}. It is valid for 3 minutes.`,
+  });
+}
+
 
 export default router;

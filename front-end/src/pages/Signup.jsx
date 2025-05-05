@@ -25,6 +25,10 @@ const blueCollarSkills = [
 ];
 
 const SignUp = () => {
+  const [step, setStep] = useState('signup');
+  const [otp, setOtp] = useState('');
+  const [userData, setUserData] = useState({});
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,151 +48,167 @@ const SignUp = () => {
     setExtraFields((prev) => ({ ...prev, skills: selectedOptions }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSignupRequestOTP = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
-  
+
+    const payload = {
+      name,
+      email,
+      password,
+      role,
+      extraFields: {
+        ...extraFields,
+        skills: role === 'worker' ? extraFields.skills.map((s) => s.value) : undefined,
+      },
+    };
+
     try {
-      const res = await axios.post('http://localhost:3516/api/auth/signup', {
-        name,
-        email,
-        password,
-        role,
-        extraFields,
-      });
-  
-      const { token, user } = res.data;
-  
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(user));
-  
-      toast.success('Registration successful!');
-      navigate(user.role === 'worker' ? '/' : '/');
+      const res = await axios.post('http://localhost:3516/api/auth/signup', payload);
+      toast.success(res.data.message);
+      setUserData(payload);
+      setStep('otp');
     } catch (err) {
-      const message = err?.response?.data?.message || 'Registration failed! Please try again.';
+      const message = err?.response?.data?.message || 'Failed to send OTP';
       toast.error(message);
     }
   };
-  
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('http://localhost:3516/api/auth/signup/verify-otp', {
+        email,
+        otp,
+      });
+
+      const { token, user } = res.data;
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      toast.success('Registration successful!');
+      navigate('/');
+    } catch (err) {
+      const message = err?.response?.data?.message || 'OTP verification failed';
+      toast.error(message);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-xl">
       <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-          <input
-            type="text"
-            placeholder="Enter your name"
-            className="w-full px-3 py-2 border rounded-md"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full px-3 py-2 border rounded-md"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className="w-full px-3 py-2 border rounded-md"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-          <input
-            type="password"
-            placeholder="Confirm your password"
-            className="w-full px-3 py-2 border rounded-md"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Your Role</label>
-          <div className="flex items-center space-x-4">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                value="user"
-                checked={role === 'user'}
-                onChange={handleRoleChange}
-                className="form-radio"
-              />
-              <span className="ml-2">User (Employer)</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                value="worker"
-                checked={role === 'worker'}
-                onChange={handleRoleChange}
-                className="form-radio"
-              />
-              <span className="ml-2">Worker</span>
-            </label>
-          </div>
-        </div>
-
-        {role === 'worker' && (
+      {step === 'signup' && (
+        <form onSubmit={handleSignupRequestOTP} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
-            <Select
-              isMulti
-              name="skills"
-              options={blueCollarSkills}
-              value={extraFields.skills}
-              onChange={handleSkillChange}
-              placeholder="Select your skills"
-              className="basic-multi-select"
-              classNamePrefix="select"
-            />
-          </div>
-        )}
-
-        {role === 'user' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+            <label className="block text-sm font-medium mb-1">Name</label>
             <input
               type="text"
-              placeholder="Enter your company name"
               className="w-full px-3 py-2 border rounded-md"
-              value={extraFields.company}
-              onChange={(e) => setExtraFields({ ...extraFields, company: e.target.value })}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
-        )}
 
-        <button
-          type="submit"
-          className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-        >
-          Sign Up
-        </button>
-      </form>
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              className="w-full px-3 py-2 border rounded-md"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              className="w-full px-3 py-2 border rounded-md"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Confirm Password</label>
+            <input
+              type="password"
+              className="w-full px-3 py-2 border rounded-md"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Select Role</label>
+            <div className="flex items-center space-x-4">
+              <label className="inline-flex items-center">
+                <input type="radio" value="user" checked={role === 'user'} onChange={handleRoleChange} />
+                <span className="ml-2">User</span>
+              </label>
+              <label className="inline-flex items-center">
+                <input type="radio" value="worker" checked={role === 'worker'} onChange={handleRoleChange} />
+                <span className="ml-2">Worker</span>
+              </label>
+            </div>
+          </div>
+
+          {role === 'worker' && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Skills</label>
+              <Select
+                isMulti
+                options={blueCollarSkills}
+                value={extraFields.skills}
+                onChange={handleSkillChange}
+              />
+            </div>
+          )}
+
+          {role === 'user' && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Company Name</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded-md"
+                value={extraFields.company}
+                onChange={(e) => setExtraFields({ ...extraFields, company: e.target.value })}
+                required
+              />
+            </div>
+          )}
+
+          <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Send OTP to Email
+          </button>
+        </form>
+      )}
+
+      {step === 'otp' && (
+        <form onSubmit={handleVerifyOTP} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">Enter OTP sent to {email}</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border rounded-md"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700">
+            Verify OTP & Complete Signup
+          </button>
+        </form>
+      )}
     </div>
   );
 };
