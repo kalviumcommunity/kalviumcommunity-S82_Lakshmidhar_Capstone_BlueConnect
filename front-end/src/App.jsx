@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import React from "react";
 import Login from "./pages/Login";
 import SignUp from "./pages/Signup";
+import CreateJob from "./pages/CreateJob";
 
 const App = () => {
   return (
@@ -21,6 +22,8 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login/>} />
             <Route path="/signup" element={<SignUp/>} />
+            <Route path="/post-job" element={<CreateJob />} />
+
             <Route path="/jobs" element={<JobsList />} />
             <Route path="/workers" element={<WorkersList />} />
             <Route path="/jobs/:id" element={<JobDetails />} />

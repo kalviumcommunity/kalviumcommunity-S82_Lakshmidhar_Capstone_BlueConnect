@@ -1,41 +1,131 @@
-import React, { useState } from 'react';
-import { Menu, X, Search, UserCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Menu, X, Search, UserCircle, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState(null);
+  const [user, setUser] = useState(null);
+  const [showProfileCard, setShowProfileCard] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+
+      if (token && storedUser) {
+        setIsLoggedIn(true);
+        setRole(storedUser.role);
+        setUser(storedUser);
+      } else {
+        setIsLoggedIn(false);
+        setRole(null);
+        setUser(null);
+      }
+    } catch {
+      setIsLoggedIn(false);
+      setRole(null);
+      setUser(null);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    setRole(null);
+    setUser(null);
+    setShowProfileCard(false);
+    navigate('/');
+  };
+
+  const renderLinks = () => {
+    if (!isLoggedIn) {
+      return (
+        <>
+          <Link to="/login" className="flex items-center space-x-1 text-blue-600 hover:text-blue-800">
+            <UserCircle size={20} />
+            <span>Login</span>
+          </Link>
+          <Link to="/signup" className="text-blue-600 hover:text-blue-800 font-medium">
+            Signup
+          </Link>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {role === 'user' && (
+          <>
+            <Link to="/workers" className="text-gray-700 hover:text-blue-600 font-medium">Find Workers</Link>
+            <Link to="/post-job" className="text-gray-700 hover:text-blue-600 font-medium">Post a Job</Link>
+          </>
+        )}
+
+        {role === 'worker' && (
+          <>
+            <Link to="/jobs" className="text-gray-700 hover:text-blue-600 font-medium">Browse Jobs</Link>
+          </>
+        )}
+
+        <div className="relative">
+          <button
+            onClick={() => setShowProfileCard(prev => !prev)}
+            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+          >
+            <UserCircle size={20} />
+            <span>Profile</span>
+          </button>
+          {showProfileCard && user && (
+            <div className="absolute top-10 right-0 bg-white border shadow-lg rounded-md w-64 p-4 z-20">
+              <h3 className="font-semibold text-blue-600 mb-2">User Details</h3>
+              <p className="text-sm text-gray-700"><strong>Name:</strong> {user.name}</p>
+              <p className="text-sm text-gray-700"><strong>Email:</strong> {user.email}</p>
+              <p className="text-sm text-gray-700"><strong>Role:</strong> {user.role}</p>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-1 text-red-500 hover:text-red-700 font-medium"
+        >
+          <LogOut size={20} />
+          <span>Logout</span>
+        </button>
+      </>
+    );
+  };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-10">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <div className="bg-blue-600 text-white p-1 rounded">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 10H8M12 14H8M8 18H16M9 6H6C5.44772 6 5 6.44772 5 7V17C5 17.5523 5.44772 18 6 18H18C18.5523 18 19 17.5523 19 17V7C19 6.44772 18.5523 6 18 6H15M9 6C9 5.44772 9.44772 5 10 5H14C14.5523 5 15 5.44772 15 6M9 6C9 6.55228 9.44772 7 10 7H14C14.5523 7 15 6.55228 15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 10H8M12 14H8M8 18H16M9 6H6C5.45 6 5 6.45 5 7V17C5 17.55 5.45 18 6 18H18C18.55 18 19 17.55 19 17V7C19 6.45 18.55 6 18 6H15M9 6C9 5.45 9.45 5 10 5H14C14.55 5 15 5.45 15 6M9 6C9 6.55 9.45 7 10 7H14C14.55 7 15 6.55 15 6" />
             </svg>
           </div>
           <span className="text-xl font-bold text-blue-700">WorkerConnect</span>
         </Link>
 
-        <div className="hidden md:flex items-center space-x-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for skills or jobs..."
-              className="pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-            />
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+        {isLoggedIn && (
+          <div className="hidden md:flex items-center space-x-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for skills or jobs..."
+                className="pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+              />
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
           </div>
-        </div>
+        )}
 
         <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/workers" className="text-gray-700 hover:text-blue-600 font-medium">Find Workers</Link>
-          <Link to="/jobs" className="text-gray-700 hover:text-blue-600 font-medium">Browse Jobs</Link>
-          <Link to="/post-job" className="text-gray-700 hover:text-blue-600 font-medium">Post a Job</Link>
-          <Link to="/login" className="flex items-center space-x-1 text-blue-600 hover:text-blue-800">
-            <UserCircle size={20} />
-            <span>Login</span>
-          </Link>
+          {renderLinks()}
         </nav>
 
         <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -45,25 +135,20 @@ const Header = () => {
 
       {isMenuOpen && (
         <div className="md:hidden bg-white p-4 shadow-md">
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for skills or jobs..."
-                className="pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-              />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          {isLoggedIn && (
+            <div className="mb-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for skills or jobs..."
+                  className="pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                />
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              </div>
             </div>
-          </div>
-
+          )}
           <nav className="flex flex-col space-y-4">
-            <Link to="/workers" className="text-gray-700 hover:text-blue-600 font-medium p-2">Find Workers</Link>
-            <Link to="/jobs" className="text-gray-700 hover:text-blue-600 font-medium p-2">Browse Jobs</Link>
-            <Link to="/post-job" className="text-gray-700 hover:text-blue-600 font-medium p-2">Post a Job</Link>
-            <Link to="/login" className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 p-2">
-              <UserCircle size={20} />
-              <span>Login</span>
-            </Link>
+            {renderLinks()}
           </nav>
         </div>
       )}

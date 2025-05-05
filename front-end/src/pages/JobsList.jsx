@@ -1,87 +1,95 @@
-import React, { useState } from 'react';
-import jobs from '../data/jobs';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import JobCard from '../components/JobCard';
 import SearchFilters from '../components/SearchFilters';
 
-
 const JobsList = () => {
-  const [filteredJobs, setFilteredJobs] = useState(jobs);
+  const [jobs, setJobs] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  const handleSearch = (filters) => {
+
+  // Fetch all jobs from backend
+  const fetchJobs = async () => {
     setLoading(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      let results = [...jobs];
-      
-      // Filter by keyword (title or description)
-      if (filters.keyword) {
-        const keyword = filters.keyword.toLowerCase();
-        results = results.filter(job => 
-          job.title.toLowerCase().includes(keyword) || 
-          job.description.toLowerCase().includes(keyword)
-        );
-      }
-      
-      // Filter by location
-      if (filters.location) {
-        const location = filters.location.toLowerCase();
-        results = results.filter(job => 
-          job.location.toLowerCase().includes(location)
-        );
-      }
-      
-      // Filter by category
-      if (filters.category) {
-        results = results.filter(job => job.category === filters.category);
-      }
-      
-      // Filter by budget range
-      if (filters.minBudget !== undefined) {
-        results = results.filter(job => job.budget >= filters.minBudget);
-      }
-      
-      if (filters.maxBudget !== undefined) {
-        results = results.filter(job => job.budget <= filters.maxBudget);
-      }
-      
-      setFilteredJobs(results);
+    try {
+      const { data } = await axios.get('http://localhost:3516/api/jobs');
+      setJobs(data);
+      setFilteredJobs(data);
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
-  
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const handleSearch = (filters) => {
+    let results = [...jobs];
+
+    if (filters.keyword) {
+      const keyword = filters.keyword.toLowerCase();
+      results = results.filter(
+        (job) =>
+          job.title.toLowerCase().includes(keyword) ||
+          job.description.toLowerCase().includes(keyword)
+      );
+    }
+
+    if (filters.location) {
+      const loc = filters.location.toLowerCase();
+      results = results.filter((job) =>
+        job.location.toLowerCase().includes(loc)
+      );
+    }
+
+    // example category and budget filters if your API/model support them
+    if (filters.category) {
+      results = results.filter((job) => job.category === filters.category);
+    }
+    if (filters.minBudget != null) {
+      results = results.filter((job) => job.salary >= filters.minBudget);
+    }
+    if (filters.maxBudget != null) {
+      results = results.filter((job) => job.salary <= filters.maxBudget);
+    }
+
+    setFilteredJobs(results);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Browse Available Jobs</h1>
-      
+
       <SearchFilters onSearch={handleSearch} type="jobs" />
-      
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+
+      <div className="mb-4 text-gray-600">
+        Showing {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'}
+      </div>
+
+      {filteredJobs.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredJobs.map((job) => (
+            <JobCard key={job._id} job={job} />
+          ))}
         </div>
       ) : (
-        <>
-          <div className="mb-4 text-gray-600">
-            Showing {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'}
-          </div>
-          
-          {filteredJobs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredJobs.map(job => (
-                <JobCard key={job.id} job={job} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
-              <p className="text-gray-600 mb-4">
-                Try adjusting your search filters to find jobs that match your criteria.
-              </p>
-            </div>
-          )}
-        </>
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
+          <p className="text-gray-600 mb-4">
+            Try adjusting your search filters to find jobs that match your criteria.
+          </p>
+        </div>
       )}
     </div>
   );

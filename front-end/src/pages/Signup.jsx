@@ -37,7 +37,7 @@ const SignUp = () => {
   const handleRoleChange = (e) => {
     const selectedRole = e.target.value;
     setRole(selectedRole);
-    setExtraFields(selectedRole === 'worker' ? { skills: [] } : { company: '', skills: [] });
+    setExtraFields(selectedRole === 'worker' ? { skills: [] } : { company: '' });
   };
 
   const handleSkillChange = (selectedOptions) => {
@@ -50,28 +50,29 @@ const SignUp = () => {
       toast.error("Passwords don't match");
       return;
     }
-
+  
     try {
-      const data = {
+      const res = await axios.post('http://localhost:3516/api/auth/signup', {
         name,
         email,
         password,
         role,
         extraFields,
-      };
-
-      const res = await axios.post('http://localhost:3516/api/auth/signup', data);
-
-      const { token } = res.data;
+      });
+  
+      const { token, user } = res.data;
+  
       localStorage.setItem('authToken', token);
-
+      localStorage.setItem('user', JSON.stringify(user));
+  
       toast.success('Registration successful!');
-      navigate('/');
+      navigate(user.role === 'worker' ? '/' : '/');
     } catch (err) {
       const message = err?.response?.data?.message || 'Registration failed! Please try again.';
       toast.error(message);
     }
   };
+  
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-xl">
@@ -82,7 +83,7 @@ const SignUp = () => {
           <input
             type="text"
             placeholder="Enter your name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -94,7 +95,7 @@ const SignUp = () => {
           <input
             type="email"
             placeholder="Enter your email"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -106,7 +107,7 @@ const SignUp = () => {
           <input
             type="password"
             placeholder="Enter your password"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -118,7 +119,7 @@ const SignUp = () => {
           <input
             type="password"
             placeholder="Confirm your password"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -158,13 +159,12 @@ const SignUp = () => {
               isMulti
               name="skills"
               options={blueCollarSkills}
-              className="basic-multi-select"
-              classNamePrefix="select"
               value={extraFields.skills}
               onChange={handleSkillChange}
               placeholder="Select your skills"
+              className="basic-multi-select"
+              classNamePrefix="select"
             />
-            <p className="text-sm text-gray-500 mt-2">Hold 'Ctrl' (or 'Cmd') to select multiple</p>
           </div>
         )}
 
@@ -174,7 +174,7 @@ const SignUp = () => {
             <input
               type="text"
               placeholder="Enter your company name"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md"
               value={extraFields.company}
               onChange={(e) => setExtraFields({ ...extraFields, company: e.target.value })}
               required
@@ -182,14 +182,12 @@ const SignUp = () => {
           </div>
         )}
 
-        <div>
-          <button
-            type="submit"
-            className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-          >
-            Sign Up
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+        >
+          Sign Up
+        </button>
       </form>
     </div>
   );
