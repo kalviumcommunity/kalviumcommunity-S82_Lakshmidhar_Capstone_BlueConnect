@@ -10,6 +10,8 @@ import Footer from "./components/Footer";
 import React from "react";
 import Login from "./pages/Login";
 import SignUp from "./pages/Signup";
+import PostJobForm from "./pages/PostJob";
+import WorkerProfileForm from "./pages/Workerform";
 
 const App = () => {
   return (
@@ -21,6 +23,8 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login/>} />
             <Route path="/signup" element={<SignUp/>} />
+            <Route path="/post-job" element={<PostJobForm/>}/>
+            <Route path="/workform" element={<WorkerProfileForm/>}/>
             <Route path="/jobs" element={<JobsList />} />
             <Route path="/workers" element={<WorkersList />} />
             <Route path="/jobs/:id" element={<JobDetails />} />

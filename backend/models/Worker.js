@@ -1,21 +1,33 @@
-// models/worker.js
 import mongoose from 'mongoose';
 
-const workerSchema = new mongoose.Schema(
+
+
+const workerProfileSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    bio: { type: String },
-    skills: [String],
-    location: { type: String },
-    contactEmail: { type: String },
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
+      required: true,
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    experience: {
+      type: String,
+      required: true,
+    },
+    company: {
+      type: String,
+      default: null,
+    },
+    hourlyRate: {
+      type: Number,
+      required: true,
     },
   },
   { timestamps: true }
 );
 
-const Worker = mongoose.model("Worker", workerSchema);
-
-export default Worker;
+const workerProfile= mongoose.model('WorkerProfile', workerProfileSchema);
+export default workerProfile
