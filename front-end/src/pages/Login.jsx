@@ -18,7 +18,6 @@ const Login = () => {
         email,
         password,
       });
-<<<<<<< HEAD
 
       const { token, ...user } = response.data;
 
@@ -26,14 +25,6 @@ localStorage.setItem('token', token);
 localStorage.setItem('user', JSON.stringify(user));
 
       setIsSubmitting(false);
-=======
-  
-      const { token, user } = res.data;
-  
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-  
->>>>>>> 348ed8e51fc6b2275a5ab58d3af10769ecbe72f9
       toast.success('Logged in successfully!');
       navigate(user.role === 'worker' ? '/' : '/');
     } catch (err) {
