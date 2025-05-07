@@ -2,12 +2,12 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
-
+import googleapi from "./controllers/geminiapi.js"
 import authRoutes from "./controllers/authController.js";
 
 import workerProfileRoutes from "./controllers/workerController.js"; 
 import jobRoutes from './controllers/jobController.js';
-d8e51fc6b2275a5ab58d3af10769ecbe72f9
+
 
 
 dotenv.config();
@@ -21,6 +21,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use('/api/google',googleapi)
 
 app.use("/api/worker-profile", workerProfileRoutes); 
 app.use('/api/jobs', jobRoutes);

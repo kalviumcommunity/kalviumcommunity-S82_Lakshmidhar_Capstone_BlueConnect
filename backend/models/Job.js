@@ -1,14 +1,11 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 348ed8e51fc6b2275a5ab58d3af10769ecbe72f9
 import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
 const jobSchema = new Schema(
   {
-<<<<<<< HEAD
+
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -20,15 +17,7 @@ const jobSchema = new Schema(
     },
     company: {
       type: String,
-=======
-    title: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
->>>>>>> 348ed8e51fc6b2275a5ab58d3af10769ecbe72f9
+
     },
     location: {
       type: String,
@@ -37,7 +26,7 @@ const jobSchema = new Schema(
     salary: {
       type: String,
     },
-<<<<<<< HEAD
+
     jobType: {
       type: String,
       enum: ['Full-Time', 'Part-Time', 'Internship', 'Freelance'],
@@ -73,23 +62,7 @@ const jobSchema = new Schema(
         },
         bidAmount: Number,
         coverLetter: String,
-=======
-    company: {
-      type: String,
-      required: true,
-    },
-    postedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    applicants: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-        },
->>>>>>> 348ed8e51fc6b2275a5ab58d3af10769ecbe72f9
+
         appliedAt: {
           type: Date,
           default: Date.now,
@@ -100,9 +73,4 @@ const jobSchema = new Schema(
   { timestamps: true }
 );
 
-<<<<<<< HEAD
 export default mongoose.model('Job', jobSchema);
-=======
-const Job = mongoose.model('Job', jobSchema);
-export default Job;
->>>>>>> 348ed8e51fc6b2275a5ab58d3af10769ecbe72f9
