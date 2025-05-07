@@ -5,9 +5,7 @@ import protect from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// @route   POST /api/jobs
-// @desc    Create a new job
-// @access  Private
+
 router.post('/', protect, async (req, res) => {
   try {
     const {
@@ -50,9 +48,7 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// @route   GET /api/jobs/my-jobs
-// @desc    Get jobs posted by the current user
-// @access  Private
+
 router.get('/my-jobs', protect, async (req, res) => {
   try {
     const jobs = await Job.find({ user: req.user._id }).sort({ createdAt: -1 });
@@ -62,9 +58,7 @@ router.get('/my-jobs', protect, async (req, res) => {
   }
 });
 
-// @route   GET /api/jobs/applied
-// @desc    Get jobs the current user applied to
-// @access  Private
+
 router.get('/applied', protect, async (req, res) => {
   try {
     const jobs = await Job.find({ 'applicants.workerId': req.user._id });
@@ -74,9 +68,7 @@ router.get('/applied', protect, async (req, res) => {
   }
 });
 
-// @route   PUT /api/jobs/:jobId
-// @desc    Update a job (only by job creator)
-// @access  Private
+
 router.put('/:jobId', protect, async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -119,9 +111,7 @@ router.put('/:jobId', protect, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/jobs/:jobId
-// @desc    Delete a job (only by job creator)
-// @access  Private
+
 router.delete('/:jobId', protect, async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -138,9 +128,7 @@ router.delete('/:jobId', protect, async (req, res) => {
   }
 });
 
-// @route   POST /api/jobs/:jobId/apply
-// @desc    Apply to a specific job
-// @access  Private
+
 router.post('/:jobId/apply', protect, async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -174,4 +162,19 @@ router.post('/:jobId/apply', protect, async (req, res) => {
   }
 });
 
+router.delete('/:jobId', protect, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const job = await Job.findOne({ _id: jobId, user: req.user._id });
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found or unauthorized' });
+    }
+
+    await job.remove();
+    res.status(200).json({ message: 'Job deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 export default router;
