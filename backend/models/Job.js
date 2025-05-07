@@ -1,27 +1,71 @@
-
 import mongoose from 'mongoose';
 
-const jobSchema = new mongoose.Schema(
+const { Schema } = mongoose;
+
+const jobSchema = new Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    title: {
+      type: String,
+      required: [true, 'Job title is required'],
+    },
+    company: {
+      type: String,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
+    salary: {
+      type: String,
+    },
+    jobType: {
+      type: String,
+      enum: ['Full-Time', 'Part-Time', 'Internship', 'Freelance'],
+    },
+    description: {
+      type: String,
+      required: [true, 'Job description is required'],
+    },
+    requirements: {
+      type: String,
+    },
+    contactEmail: {
+      type: String,
+    },
+    category: {
+      type: String,
+    },
+    budget: {
+      type: Number,
+    },
+    postedDate: {
+      type: Date,
+      default: Date.now,
+    },
+    deadline: {
+      type: Date,
+    },
+    applicants: [
       {
-        title: { type: String, required: true },
-        company: { type: String, required: true },
-        location: { type: String, required: true },
-        salary: { type: String },
-        jobType: {
-          type: String,
-          enum: ['Full-Time', 'Part-Time', 'Internship', 'Freelance'],
-          required: true,
+        workerId: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
         },
-        description: { type: String, required: true },
-        requirements: { type: String },
-        contactEmail: { type: String, required: true },
+        bidAmount: Number,
+        coverLetter: String,
+        appliedAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
-      { timestamps: true }
-    );
-    
-    const Job = mongoose.model('Job', jobSchema);
+    ],
+  },
+  { timestamps: true }
+);
 
-
-
-
-export default Job;
+export default mongoose.model('Job', jobSchema);

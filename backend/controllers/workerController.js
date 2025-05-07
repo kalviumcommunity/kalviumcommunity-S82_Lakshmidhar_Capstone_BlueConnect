@@ -1,135 +1,68 @@
 import express from 'express';
-import WorkerProfile from '../models/Worker.js';
-import User from '../models/User.js';
+import Job from '../models/Job.js';
+import protect  from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 
-router.post('/profile', async (req, res) => {
+router.post('/', protect, async (req, res) => {
+  const {
+    title,
+    company,
+    location,
+    salary,
+    jobType,
+    description,
+    requirements,
+    contactEmail,
+    category,
+    budget,
+    deadline
+  } = req.body;
+
   try {
-    const { userId, skills, experience, company, hourlyRate } = req.body;
+    const job = await Job.create({
+      user: req.user._id,
+      title,
+      company,
+      location,
+      salary,
+      jobType,
+      description,
+      requirements,
+      contactEmail,
+      category,
+      budget,
+      deadline,
+    });
 
-    
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-
-    
-    let workerProfile = await WorkerProfile.findOne({ userId });
-
-    if (workerProfile) {
-     
-      workerProfile.skills = skills;
-      workerProfile.experience = experience;
-      workerProfile.company = company;
-      workerProfile.hourlyRate = hourlyRate;
-    } else {
-      // Create a new profile
-      workerProfile = new WorkerProfile({
-        userId,
-        skills,
-        experience,
-        company,
-        hourlyRate,
-      });
-    }
-
-    // Save the worker profile
-    await workerProfile.save();
-
-    res.status(201).json({ msg: 'Worker profile saved successfully', workerProfile });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
-  }
-});
-router.put('/profile/:userId', async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const { skills, experience, company, hourlyRate } = req.body;
-  
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ msg: 'User not found' });
-      }
-  
-      let workerProfile = await WorkerProfile.findOne({ userId });
-  
-      if (workerProfile) {
-        // Update existing profile
-        workerProfile.skills = skills;
-        workerProfile.experience = experience;
-        workerProfile.company = company;
-        workerProfile.hourlyRate = hourlyRate;
-      } else {
-        // Create a new profile
-        workerProfile = new WorkerProfile({
-          userId,
-          skills,
-          experience,
-          company,
-          hourlyRate,
-        });
-      }
-  
-      await workerProfile.save();
-  
-      res.status(201).json({ msg: 'Worker profile saved successfully', workerProfile });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ msg: 'Server Error' });
-    }
-  });
-
-// Get worker profile by userId
-router.get('/profile/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    // Find worker profile by userId
-    const workerProfile = await WorkerProfile.findOne({ userId }).populate('userId', 'name email');
-
-    if (!workerProfile) {
-      return res.status(404).json({ msg: 'Worker profile not found' });
-    }
-
-    res.json(workerProfile);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(201).json(job);
+  } catch (error) {
+    res.status(400).json({ message: 'Error creating job', error: error.message });
   }
 });
 
-// Get all worker profiles (e.g., for admins or listing)
-router.get('/profiles', async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
-    const workerProfiles = await WorkerProfile.find().populate('userId', 'name email');
-
-    res.json(workerProfiles);
+    const workers = await WorkerProfile.find().populate('userId', 'name email role');
+    res.status(200).json(workers);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ message: 'Error fetching workers', error: err.message });
   }
 });
 
-// Delete worker profile by userId
-router.delete('/profile/:userId', async (req, res) => {
+// Get single worker profile by ID
+router.get('/:id', protect, async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    // Find and delete the worker profile
-    const workerProfile = await WorkerProfile.findOneAndDelete({ userId });
-
-    if (!workerProfile) {
-      return res.status(404).json({ msg: 'Worker profile not found' });
+    const worker = await WorkerProfile.findById(req.params.id).populate('userId', 'name email role');
+    if (!worker) {
+      return res.status(404).json({ message: 'Worker not found' });
     }
-
-    res.json({ msg: 'Worker profile deleted successfully' });
+    res.status(200).json(worker);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ message: 'Error fetching worker', error: err.message });
   }
 });
 
-export default router;
+
+export default router

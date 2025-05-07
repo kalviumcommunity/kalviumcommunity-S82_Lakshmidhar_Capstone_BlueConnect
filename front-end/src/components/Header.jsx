@@ -1,77 +1,117 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { LogOut, User, Briefcase, Users, PlusCircle, ClipboardList, Search } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Header = () => {
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [role, setRole] = useState(null);
+  const [showMenu, setShowMenu] = useState(false); // ✅ Added this
 
+  // Retrieve user from localStorage
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('userInfo'));
-    setUser(storedUser);
+    const storedUserStr = localStorage.getItem('user');
+    if (storedUserStr) {
+      try {
+        const storedUser = JSON.parse(storedUserStr);
+        setRole(storedUser.role);
+      } catch (err) {
+        console.error('Failed to parse user:', err);
+      }
+    }
   }, []);
 
+  // Handle logout functionality
   const handleLogout = () => {
-    localStorage.removeItem('userInfo');
-    toast.success('Logged out successfully');
+    localStorage.clear();
+    setToken(null);
+    setRole(null);
+    toast.success('Logged out');
     navigate('/login');
   };
 
   return (
-    <header className="bg-white shadow-md py-4 px-6 flex items-center justify-between">
-      <Link to="/" className="text-xl font-bold text-blue-600">
-        Blue Connect
-      </Link>
+    <nav className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between shadow-md">
+      <Link to="/" className="text-xl font-bold tracking-wide">Blue Connect</Link>
 
-      <nav className="flex items-center space-x-6">
-        {user ? (
+      <ul className="flex items-center space-x-6">
+        {/* Show different links based on role */}
+        {token && role === 'worker' ? (
           <>
-            {user.role === 'worker' ? (
-              <>
-                <Link to="/worker-form" className="text-gray-700 hover:text-blue-600 font-medium">
-                  Worker Form
-                </Link>
-                <Link to="/my-jobs" className="text-gray-700 hover:text-blue-600 font-medium">
-                  My Jobs
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/workers" className="text-gray-700 hover:text-blue-600 font-medium">
-                  Find Workers
-                </Link>
-                <Link to="/post-job" className="text-gray-700 hover:text-blue-600 font-medium">
-                  Post Job
-                </Link>
-              </>
+            <li>
+              <Link to="/find-jobs" className="hover:underline flex items-center gap-1">
+                <Search size={18} /> Find Jobs
+              </Link>
+            </li>
+            <li>
+              <Link to="/applied-jobs" className="hover:underline flex items-center gap-1">
+                <ClipboardList size={18} /> Applied Jobs
+              </Link>
+            </li>
+          </>
+        ) : token && role === 'user' ? (
+          <>
+            <li>
+              <Link to="/workers" className="hover:underline flex items-center gap-1">
+                <Users size={18} /> Find Workers
+              </Link>
+            </li>
+            <li>
+              <Link to="/post-job" className="hover:underline flex items-center gap-1">
+                <PlusCircle size={18} /> Post Job
+              </Link>
+            </li>
+            <li>
+              <Link to="/my-jobs" className="hover:underline flex items-center gap-1">
+                <Briefcase size={18} /> My Jobs
+              </Link>
+            </li>
+          </>
+        ) : token && role === 'user' ? (  // Add condition for 'user' role
+          <>
+            <li>
+              <Link to="/profile" className="hover:underline flex items-center gap-1">
+                <User size={18} /> Profile
+              </Link>
+            </li>
+            <li>
+              <Link to="/settings" className="hover:underline flex items-center gap-1">
+                <PlusCircle size={18} /> Settings
+              </Link>
+            </li>
+          </>
+       ) : !token && (
+        <li>
+          <Link to="/login" className="hover:underline">Login</Link>
+        </li>
+      )}
+
+        {/* Profile + Logout (only if logged in) */}
+        {token && (
+          <li className="relative">
+            <div
+              onClick={() => setShowMenu(!showMenu)}
+              className="cursor-pointer flex items-center gap-2"
+            >
+              <User size={20} />
+              <span className="text-sm font-medium">Profile</span>
+            </div>
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-32 bg-white text-black rounded-md shadow-lg z-10">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </div>
             )}
-
-            {/* Profile Dropdown */}
-            <Menu>
-              <MenuButton className="text-gray-700 font-medium hover:text-blue-600 flex items-center">
-                {user.email.split('@')[0]} <ChevronDownIcon className="ml-1" />
-              </MenuButton>
-              <MenuList>
-                <MenuItem onClick={() => navigate('/profile')}>Profile</MenuItem>
-                <MenuItem onClick={() => navigate('/my-jobs')}>My Jobs</MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
-              </MenuList>
-            </Menu>
-          </>
-        ) : (
-          <>
-            <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium">
-              Login
-            </Link>
-            <Link to="/signup" className="text-gray-700 hover:text-blue-600 font-medium">
-              Sign Up
-            </Link>
-          </>
+          </li>
         )}
-      </nav>
-    </header>
+      </ul>
+    </nav>
   );
 };
 

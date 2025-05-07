@@ -1,40 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import workers from '../data/WorkersData';
+import axios from 'axios';
 import { Star, MapPin, Clock, Briefcase, Phone, Mail, Calendar, ChevronLeft } from 'lucide-react';
 
 const WorkerDetails = () => {
-  const { id } = useParams(); // Remove the TypeScript generic
-  const worker = workers.find(w => w.id === id);
-  
-  if (!worker) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold mb-4">Worker Not Found</h2>
-        <p className="mb-6">The worker you are looking for does not exist or has been removed.</p>
-        <Link to="/workers" className="text-blue-600 hover:text-blue-800 font-medium">
-          Back to Workers
-        </Link>
-      </div>
-    );
-  }
-  
+  const { id } = useParams();
+  const [worker, setWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchWorkerDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3516/api/workers/${id}`);
+        setWorker(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError('Worker not found');
+        setLoading(false);
+      }
+    };
+
+    fetchWorkerDetails();
+  }, [id]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link 
-        to="/workers" 
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
-      >
+      <Link to="/workers" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
         <ChevronLeft size={20} />
         <span>Back to Workers</span>
       </Link>
-      
+
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
           <div className="flex flex-col md:flex-row md:items-center">
-            <img 
-              src={worker.avatar} 
+            <img
+              src={worker.avatar}
               alt={worker.name}
               className="w-24 h-24 rounded-full object-cover border-4 border-white mb-4 md:mb-0 md:mr-6"
             />
@@ -55,85 +59,41 @@ const WorkerDetails = () => {
             </div>
           </div>
         </div>
-        
-        {/* Main Content */}
+
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Left Column */}
             <div className="md:col-span-2">
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">About</h2>
                 <p className="text-gray-600">{worker.about}</p>
               </section>
-              
+
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Skills</h2>
                 <div className="flex flex-wrap gap-2">
                   {worker.skills.map((skill, index) => (
-                    <span 
-                      key={index} 
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full"
-                    >
+                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
                       {skill}
                     </span>
                   ))}
                 </div>
               </section>
-              
+
+              {/* Reviews Section */}
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Reviews</h2>
                 <div className="space-y-4">
-                  <div className="border rounded-lg p-4">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={18} className="fill-current" />
-                        ))}
-                      </div>
-                      <span className="ml-2 font-medium">Excellent Service</span>
-                    </div>
-                    <p className="text-gray-600 mb-2">
-                      "John was professional, punctual, and did an outstanding job with our kitchen plumbing. 
-                      Would definitely hire again!"
-                    </p>
-                    <div className="text-sm text-gray-500">
-                      - Michael B. (2 weeks ago)
-                    </div>
-                  </div>
-                  
-                  <div className="border rounded-lg p-4">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={18} className="fill-current" />
-                        ))}
-                      </div>
-                      <span className="ml-2 font-medium">Great Work</span>
-                    </div>
-                    <p className="text-gray-600 mb-2">
-                      "Very knowledgeable and experienced. Fixed our electrical issue quickly 
-                      and explained everything clearly. Highly recommend!"
-                    </p>
-                    <div className="text-sm text-gray-500">
-                      - Sarah L. (1 month ago)
-                    </div>
-                  </div>
+                  {/* Review items */}
                 </div>
-                
-                <Link 
-                  to="#" 
-                  className="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"
-                >
+                <Link to="#" className="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium">
                   See all reviews
                 </Link>
               </section>
             </div>
-            
-            {/* Right Column */}
+
             <div>
               <div className="bg-gray-50 rounded-lg p-5 mb-6">
                 <h2 className="text-xl font-semibold mb-4">Details</h2>
-                
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <Briefcase className="w-5 h-5 text-blue-600 mt-1 mr-3" />
@@ -142,7 +102,7 @@ const WorkerDetails = () => {
                       <p className="text-gray-600">{worker.experience} years</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <Clock className="w-5 h-5 text-blue-600 mt-1 mr-3" />
                     <div>
@@ -150,7 +110,7 @@ const WorkerDetails = () => {
                       <p className="text-gray-600">{worker.availability.join(', ')}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <Calendar className="w-5 h-5 text-blue-600 mt-1 mr-3" />
                     <div>
@@ -160,15 +120,14 @@ const WorkerDetails = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-blue-50 rounded-lg p-5">
                 <h2 className="text-xl font-semibold mb-4">Contact</h2>
-                
                 <button className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition mb-3 flex justify-center items-center">
                   <Mail size={18} className="mr-2" />
                   Send Message
                 </button>
-                
+
                 <button className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition flex justify-center items-center">
                   <Phone size={18} className="mr-2" />
                   Call Now

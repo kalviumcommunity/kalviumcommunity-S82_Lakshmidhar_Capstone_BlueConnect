@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 import SignUp from "./pages/Signup";
 import PostJobForm from "./pages/PostJob";
 import WorkerProfileForm from "./pages/Workerform";
+import AppliedJobs from "./pages/RegisteredJobs";
+import MyJobs from "./pages/MyJobs";
 
 const App = () => {
   return (
@@ -24,8 +26,11 @@ const App = () => {
             <Route path="/login" element={<Login/>} />
             <Route path="/signup" element={<SignUp/>} />
             <Route path="/post-job" element={<PostJobForm/>}/>
-            <Route path="/workform" element={<WorkerProfileForm/>}/>
+            <Route path="/dashboard/worker-profile" element={<WorkerProfileForm />} />
+            <Route path="/applied-jobs" element={<AppliedJobs/>}/>
+            <Route path="/my-jobs" element={<MyJobs/>} />
             <Route path="/jobs" element={<JobsList />} />
+            <Route path="/jobs/edit/:jobId" element={<PostJobForm />} />
             <Route path="/workers" element={<WorkersList />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
             <Route path="/workers/:id" element={<WorkerDetails />} />

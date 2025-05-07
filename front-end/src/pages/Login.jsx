@@ -19,8 +19,10 @@ const Login = () => {
         password,
       });
 
-      const { token } = response.data;
-      localStorage.setItem('authToken', token);
+      const { token, ...user } = response.data;
+
+localStorage.setItem('token', token);
+localStorage.setItem('user', JSON.stringify(user));
 
       setIsSubmitting(false);
       toast.success('Logged in successfully!');
