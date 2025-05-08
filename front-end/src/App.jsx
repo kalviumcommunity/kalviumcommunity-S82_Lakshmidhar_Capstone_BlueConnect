@@ -14,6 +14,7 @@ import PostJobForm from "./pages/PostJob";
 import WorkerProfileForm from "./pages/Workerform";
 import AppliedJobs from "./pages/RegisteredJobs";
 import MyJobs from "./pages/MyJobs";
+import DonateMoney from "./components/payment/Donatemoney";
 
 const App = () => {
   return (
@@ -29,7 +30,7 @@ const App = () => {
             <Route path="/dashboard/worker-profile" element={<WorkerProfileForm />} />
             <Route path="/applied-jobs" element={<AppliedJobs/>}/>
             <Route path="/my-jobs" element={<MyJobs/>} />
-
+            <Route path="/donate" element={<DonateMoney />} />
             <Route path="/jobs" element={<JobsList />} />
             <Route path="/jobs/edit/:jobId" element={<PostJobForm />} />
             <Route path="/workers" element={<WorkersList />} />

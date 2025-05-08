@@ -110,6 +110,14 @@ const Header = () => {
             )}
           </li>
         )}
+        <li>
+  <Link
+    to="/donate"
+    className="bg-yellow-400 text-black px-3 py-1 rounded hover:bg-yellow-500 transition-all"
+  >
+    Donate Money
+  </Link>
+</li>
       </ul>
     </nav>
   );
