@@ -1,0 +1,19 @@
+meta {
+  name: Signup Endpoint
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:3516/api/auth/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "srivalli.worker@example.com",
+    "password": "123456"
+  }
+  
+}
