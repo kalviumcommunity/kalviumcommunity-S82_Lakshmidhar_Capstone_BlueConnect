@@ -18,15 +18,17 @@ const Login = () => {
         email,
         password,
       });
-
-      const { token, ...user } = response.data;
+console.log(res)
+      const { token, ...user } = res.data;
 
 localStorage.setItem('token', token);
 localStorage.setItem('user', JSON.stringify(user));
 
-      setIsSubmitting(false);
-      toast.success('Logged in successfully!');
-      navigate(user.role === 'worker' ? '/' : '/');
+setIsSubmitting(false);
+toast.success('Logged in successfully!');
+// console.log("done until this")
+navigate('/');
+navigate(0)
     } catch (err) {
       toast.error('Login failed! Please check your credentials.');
     } finally {

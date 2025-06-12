@@ -1,11 +1,9 @@
-
 import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
 const jobSchema = new Schema(
   {
-
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -17,7 +15,6 @@ const jobSchema = new Schema(
     },
     company: {
       type: String,
-
     },
     location: {
       type: String,
@@ -26,7 +23,6 @@ const jobSchema = new Schema(
     salary: {
       type: String,
     },
-
     jobType: {
       type: String,
       enum: ['Full-Time', 'Part-Time', 'Internship', 'Freelance'],
@@ -56,13 +52,12 @@ const jobSchema = new Schema(
     },
     applicants: [
       {
-        workerId: {
+        user: {                      // Changed from workerId to user
           type: Schema.Types.ObjectId,
           ref: 'User',
         },
         bidAmount: Number,
         coverLetter: String,
-
         appliedAt: {
           type: Date,
           default: Date.now,

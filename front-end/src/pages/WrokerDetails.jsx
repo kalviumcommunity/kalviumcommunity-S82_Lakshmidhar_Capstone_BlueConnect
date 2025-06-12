@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Star, MapPin, Clock, Briefcase, Phone, Mail, Calendar, ChevronLeft } from 'lucide-react';
+import {
+  Star, MapPin, Clock, Briefcase, Phone,
+  Mail, Calendar, ChevronLeft
+} from 'lucide-react';
 
 const WorkerDetails = () => {
   const { id } = useParams();
@@ -12,7 +15,7 @@ const WorkerDetails = () => {
   useEffect(() => {
     const fetchWorkerDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3516/api/workers/${id}`);
+        const response = await axios.get(`http://localhost:3516/api/worker-profile/${id}`);
         setWorker(response.data);
         setLoading(false);
       } catch (err) {
@@ -38,24 +41,24 @@ const WorkerDetails = () => {
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
           <div className="flex flex-col md:flex-row md:items-center">
             <img
-              src={worker.avatar}
-              alt={worker.name}
+              src={worker.avatar || 'https://via.placeholder.com/150'}
+              alt={worker.name || 'Worker'}
               className="w-24 h-24 rounded-full object-cover border-4 border-white mb-4 md:mb-0 md:mr-6"
             />
             <div>
-              <h1 className="text-3xl font-bold">{worker.name}</h1>
+              <h1 className="text-3xl font-bold">{worker.name || 'Unnamed Worker'}</h1>
               <div className="flex items-center mt-2">
                 <MapPin size={18} className="mr-1" />
-                <span>{worker.location}</span>
+                <span>{worker.location || 'Unknown location'}</span>
               </div>
               <div className="flex items-center mt-1">
                 <Star size={18} className="text-yellow-300 fill-current mr-1" />
-                <span className="font-medium">{worker.rating}</span>
-                <span className="ml-1">({worker.completedJobs} jobs completed)</span>
+                <span className="font-medium">{worker.rating ?? 'N/A'}</span>
+                <span className="ml-1">({worker.completedJobs ?? 0} jobs completed)</span>
               </div>
             </div>
             <div className="md:ml-auto mt-4 md:mt-0">
-              <span className="block text-2xl font-bold">${worker.hourlyRate}/hr</span>
+              <span className="block text-2xl font-bold">${worker.hourlyRate ?? '0'}/hr</span>
             </div>
           </div>
         </div>
@@ -65,25 +68,29 @@ const WorkerDetails = () => {
             <div className="md:col-span-2">
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">About</h2>
-                <p className="text-gray-600">{worker.about}</p>
+                <p className="text-gray-600">{worker.about || 'No description available.'}</p>
               </section>
 
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Skills</h2>
-                <div className="flex flex-wrap gap-2">
-                  {worker.skills.map((skill, index) => (
-                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+                {Array.isArray(worker.skills) && worker.skills.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {worker.skills.map((skill, index) => (
+                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">No skills listed.</p>
+                )}
               </section>
 
-              {/* Reviews Section */}
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Reviews</h2>
                 <div className="space-y-4">
-                  {/* Review items */}
+                  {/* Future review items can go here */}
+                  <p className="text-gray-500">No reviews available yet.</p>
                 </div>
                 <Link to="#" className="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium">
                   See all reviews
@@ -99,7 +106,7 @@ const WorkerDetails = () => {
                     <Briefcase className="w-5 h-5 text-blue-600 mt-1 mr-3" />
                     <div>
                       <h3 className="font-medium">Experience</h3>
-                      <p className="text-gray-600">{worker.experience} years</p>
+                      <p className="text-gray-600">{worker.experience ?? 'Not specified'} years</p>
                     </div>
                   </div>
 
@@ -107,7 +114,11 @@ const WorkerDetails = () => {
                     <Clock className="w-5 h-5 text-blue-600 mt-1 mr-3" />
                     <div>
                       <h3 className="font-medium">Availability</h3>
-                      <p className="text-gray-600">{worker.availability.join(', ')}</p>
+                      <p className="text-gray-600">
+                        {Array.isArray(worker.availability)
+                          ? worker.availability.join(', ')
+                          : worker.availability || 'Not specified'}
+                      </p>
                     </div>
                   </div>
 
@@ -115,7 +126,7 @@ const WorkerDetails = () => {
                     <Calendar className="w-5 h-5 text-blue-600 mt-1 mr-3" />
                     <div>
                       <h3 className="font-medium">Jobs Completed</h3>
-                      <p className="text-gray-600">{worker.completedJobs} jobs</p>
+                      <p className="text-gray-600">{worker.completedJobs ?? 0} jobs</p>
                     </div>
                   </div>
                 </div>

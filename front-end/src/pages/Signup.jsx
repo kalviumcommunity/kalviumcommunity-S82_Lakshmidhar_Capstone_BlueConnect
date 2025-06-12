@@ -25,10 +25,6 @@ const blueCollarSkills = [
 ];
 
 const SignUp = () => {
-  const [step, setStep] = useState('signup');
-  const [otp, setOtp] = useState('');
-  const [userData, setUserData] = useState({});
-
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,8 +44,9 @@ const SignUp = () => {
     setExtraFields((prev) => ({ ...prev, skills: selectedOptions }));
   };
 
-  const handleSignupRequestOTP = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
       toast.error("Passwords don't match");
       return;
@@ -68,31 +65,17 @@ const SignUp = () => {
 
     try {
       const res = await axios.post('http://localhost:3516/api/auth/signup', payload);
-      toast.success(res.data.message);
-      setUserData(payload);
-      setStep('otp');
-    } catch (err) {
-      const message = err?.response?.data?.message || 'Failed to send OTP';
-      toast.error(message);
-    }
-  };
+      toast.success('Registration successful!');
 
-  const handleVerifyOTP = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('http://localhost:3516/api/auth/signup/verify-otp', {
-        email,
-        otp,
-      });
+      const { token, ...user } = res.data;
 
-      const { token, user } = res.data;
-      localStorage.setItem('authToken', token);
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      toast.success('Registration successful!');
       navigate('/');
+      navigate(0)
     } catch (err) {
-      const message = err?.response?.data?.message || 'OTP verification failed';
+      const message = err?.response?.data?.message || 'Registration failed';
       toast.error(message);
     }
   };
@@ -101,114 +84,94 @@ const SignUp = () => {
     <div className="container mx-auto px-4 py-12 max-w-xl">
       <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
 
-      {step === 'signup' && (
-        <form onSubmit={handleSignupRequestOTP} className="space-y-6">
+      <form onSubmit={handleSignup} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border rounded-md"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Email</label>
+          <input
+            type="email"
+            className="w-full px-3 py-2 border rounded-md"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Password</label>
+          <input
+            type="password"
+            className="w-full px-3 py-2 border rounded-md"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Confirm Password</label>
+          <input
+            type="password"
+            className="w-full px-3 py-2 border rounded-md"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Select Role</label>
+          <div className="flex items-center space-x-4">
+            <label className="inline-flex items-center">
+              <input type="radio" value="user" checked={role === 'user'} onChange={handleRoleChange} />
+              <span className="ml-2">User</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input type="radio" value="worker" checked={role === 'worker'} onChange={handleRoleChange} />
+              <span className="ml-2">Worker</span>
+            </label>
+          </div>
+        </div>
+
+        {role === 'worker' && (
           <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
+            <label className="block text-sm font-medium mb-1">Skills</label>
+            <Select
+              isMulti
+              options={blueCollarSkills}
+              value={extraFields.skills}
+              onChange={handleSkillChange}
+            />
+          </div>
+        )}
+
+        {role === 'user' && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Company Name</label>
             <input
               type="text"
               className="w-full px-3 py-2 border rounded-md"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={extraFields.company}
+              onChange={(e) => setExtraFields({ ...extraFields, company: e.target.value })}
               required
             />
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              className="w-full px-3 py-2 border rounded-md"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              className="w-full px-3 py-2 border rounded-md"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Confirm Password</label>
-            <input
-              type="password"
-              className="w-full px-3 py-2 border rounded-md"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Select Role</label>
-            <div className="flex items-center space-x-4">
-              <label className="inline-flex items-center">
-                <input type="radio" value="user" checked={role === 'user'} onChange={handleRoleChange} />
-                <span className="ml-2">User</span>
-              </label>
-              <label className="inline-flex items-center">
-                <input type="radio" value="worker" checked={role === 'worker'} onChange={handleRoleChange} />
-                <span className="ml-2">Worker</span>
-              </label>
-            </div>
-          </div>
-
-          {role === 'worker' && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Skills</label>
-              <Select
-                isMulti
-                options={blueCollarSkills}
-                value={extraFields.skills}
-                onChange={handleSkillChange}
-              />
-            </div>
-          )}
-
-          {role === 'user' && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Company Name</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border rounded-md"
-                value={extraFields.company}
-                onChange={(e) => setExtraFields({ ...extraFields, company: e.target.value })}
-                required
-              />
-            </div>
-          )}
-
-          <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Send OTP to Email
-          </button>
-        </form>
-      )}
-
-      {step === 'otp' && (
-        <form onSubmit={handleVerifyOTP} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Enter OTP sent to {email}</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-md"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700">
-            Verify OTP & Complete Signup
-          </button>
-        </form>
-      )}
+        <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Sign Up
+        </button>
+      </form>
     </div>
   );
 };
