@@ -6,15 +6,38 @@ import axios from 'axios';
 const Home = () => {
   const [user, setUser] = useState(null);
   const [featuredWorkers, setFeaturedWorkers] = useState([]);
+  const [showCreateProfile, setShowCreateProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
+    const fetchData = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
 
-    // Fetch featured workers
-    axios.get('http://localhost:3516/api/worker-profile')
-      .then(res => setFeaturedWorkers(res.data))
-      .catch(err => console.error('Error loading featured workers', err));
+          if (parsedUser.role === 'worker') {
+            const token = localStorage.getItem('token');
+            const profileStatusRes = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile/status', {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setShowCreateProfile(!profileStatusRes.data.exists);
+          }
+        }
+
+        const workersRes = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile');
+        setFeaturedWorkers(workersRes.data);
+      } catch (err) {
+        console.error('Error loading data', err);
+        setError('Failed to load data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const isLoggedIn = !!user;
@@ -60,32 +83,40 @@ const Home = () => {
                   <Link to="/applied-jobs" className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 transition">
                     My Applications
                   </Link>
+                  {showCreateProfile && (
+                    <Link to="/create-worker-profile" className="px-6 py-3 bg-yellow-400 text-black font-medium rounded-md hover:bg-yellow-300 transition">
+                      Create Profile
+                    </Link>
+                  )}
                 </>
-              ) : (
-                <>
-                  <Link to="/profile" className="px-6 py-3 bg-white text-blue-700 font-medium rounded-md hover:bg-blue-50 transition">
-                    View Profile
-                  </Link>
-                  <Link to="/settings" className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 transition">
-                    Settings
-                  </Link>
-                </>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-white" style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0)' }} />
+        <div
+          className="absolute bottom-0 left-0 right-0 h-16 bg-white"
+          style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0)' }}
+        />
       </section>
 
       {/* Featured Workers Section */}
       <section className="py-12 bg-gray-100">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-6">Featured Workers</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featuredWorkers.map(worker => (
-              <WorkerCard key={worker._id} worker={worker} />
-            ))}
-          </div>
+
+          {loading ? (
+            <p className="text-center text-gray-600">Loading featured workers...</p>
+          ) : error ? (
+            <p className="text-center text-red-600">{error}</p>
+          ) : featuredWorkers.length === 0 ? (
+            <p className="text-center text-gray-600">No workers available at the moment.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {featuredWorkers.map((worker) => (
+                <WorkerCard key={worker._id} worker={worker} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

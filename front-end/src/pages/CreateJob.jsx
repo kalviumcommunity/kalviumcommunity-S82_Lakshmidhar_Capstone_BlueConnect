@@ -22,7 +22,7 @@ const CreateJob = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3516/api/jobs', formData);
+      await axios.post('https://capstone-backend-65es.onrender.com/api/jobs', formData);
       toast.success('Job created successfully!');
       navigate('/jobs'); // redirect to job list
     } catch (err) {

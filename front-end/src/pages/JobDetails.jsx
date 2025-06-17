@@ -14,9 +14,9 @@ const JobDetails = () => {
   const [coverLetter, setCoverLetter] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch job details from the API based on job ID
+ 
   useEffect(() => {
-    axios.get(`http://localhost:3516/api/jobs/${id}`)
+    axios.get(`https://capstone-backend-65es.onrender.com/api/jobs/${id}`)
       .then(res => setJob(res.data))
       .catch(err => {
         console.error(err);
@@ -30,7 +30,7 @@ const JobDetails = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3516/api/jobs/${id}/apply`, {
+      await axios.post(`https://capstone-backend-65es.onrender.com/api/jobs/${id}/apply`, {
         bidAmount,
         coverLetter
       }, {
@@ -56,7 +56,7 @@ const JobDetails = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link to="/jobs" className="inline-flex items-center text-blue-600 mb-6">
+      <Link to="/find-jobs" className="inline-flex items-center text-blue-600 mb-6">
         <ChevronLeft size={20} />
         <span>Back to Jobs</span>
       </Link>

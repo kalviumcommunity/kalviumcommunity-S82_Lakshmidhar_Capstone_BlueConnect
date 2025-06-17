@@ -13,7 +13,7 @@ const Dashboard = () => {
     const fetchUser = async () => {
       try {
         
-        const response = await axios.get('/api/auth/me');
+        const response = await axios.get('https://capstone-backend-65es.onrender.com/api/auth/me');
         setUser(response.data);
       } catch (error) {
         toast.error('Authentication failed');

@@ -27,11 +27,11 @@ const App = () => {
             <Route path="/login" element={<Login/>} />
             <Route path="/signup" element={<SignUp/>} />
             <Route path="/post-job" element={<PostJobForm/>}/>
-            <Route path="/dashboard/worker-profile" element={<WorkerProfileForm />} />
+            <Route path="/create-worker-profile" element={<WorkerProfileForm />} />
             <Route path="/applied-jobs" element={<AppliedJobs/>}/>
             <Route path="/my-jobs" element={<MyJobs/>} />
             <Route path="/donate" element={<DonateMoney />} />
-            <Route path="/jobs" element={<JobsList />} />
+            <Route path="/find-jobs" element={<JobsList />} />
             <Route path="/jobs/edit/:jobId" element={<PostJobForm />} />
             <Route path="/workers" element={<WorkersList />} />
             <Route path="/jobs/:id" element={<JobDetails />} />

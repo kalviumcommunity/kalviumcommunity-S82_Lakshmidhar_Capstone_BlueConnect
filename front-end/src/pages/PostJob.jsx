@@ -37,7 +37,7 @@ const JobPostForm = () => {
     const fetchJob = async () => {
       if (isEditing) {
         try {
-          const res = await axios.get(`http://localhost:3516/api/jobs/${jobId}`, config);
+          const res = await axios.get(`https://capstone-backend-65es.onrender.com/api/jobs/${jobId}`, config);
           const job = res.data;
           setFormData({
             title: job.title || '',
@@ -75,10 +75,10 @@ const JobPostForm = () => {
 
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:3516/api/jobs/${jobId}`, formData, config);
+        await axios.put(`https://capstone-backend-65es.onrender.com/api/jobs/${jobId}`, formData, config);
         setMessage('Job updated successfully!');
       } else {
-        await axios.post('http://localhost:3516/api/jobs', formData, config);
+        await axios.post('https://capstone-backend-65es.onrender.com/api/jobs', formData, config);
         setMessage('Job posted successfully!');
         setFormData({
           title: '',

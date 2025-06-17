@@ -177,4 +177,24 @@ router.delete('/:jobId', protect, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+router.get('/', async (req, res) => {
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 });
+    res.status(200).json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+router.get('/:id', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id).populate('applicants.user', 'name email');
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    res.json(job);
+  } catch (err) {
+    console.error('Error fetching job:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 export default router;

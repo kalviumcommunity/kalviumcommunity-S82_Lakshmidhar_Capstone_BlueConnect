@@ -14,19 +14,21 @@ const Login = () => {
     setIsSubmitting(true);
   
     try {
-      const res = await axios.post('http://localhost:3516/api/auth/login', {
+      const res = await axios.post('https://capstone-backend-65es.onrender.com/api/auth/login', {
         email,
         password,
       });
-
-      const { token, ...user } = response.data;
+console.log(res)
+      const { token, ...user } = res.data;
 
 localStorage.setItem('token', token);
 localStorage.setItem('user', JSON.stringify(user));
 
-      setIsSubmitting(false);
-      toast.success('Logged in successfully!');
-      navigate(user.role === 'worker' ? '/' : '/');
+setIsSubmitting(false);
+toast.success('Logged in successfully!');
+// console.log("done until this")
+navigate('/');
+navigate(0)
     } catch (err) {
       toast.error('Login failed! Please check your credentials.');
     } finally {

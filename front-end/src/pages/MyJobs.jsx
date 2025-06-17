@@ -29,7 +29,7 @@ const MyJobs = () => {
         };
 
         // Fetch jobs from the backend using the current user's ID (from the token)
-        const res = await axios.get('http://localhost:3516/api/jobs/my-jobs', config);
+        const res = await axios.get('https://capstone-backend-65es.onrender.com/api/jobs/my-jobs', config);
         setMyJobs(res.data || []);
       } catch (error) {
         setMessage('Failed to load jobs. Please try again later.');
@@ -51,7 +51,7 @@ const MyJobs = () => {
           },
         };
 
-        await axios.delete(`http://localhost:3516/api/jobs/${jobId}`, config);
+        await axios.delete(`https://capstone-backend-65es.onrender.com/api/jobs/${jobId}`, config);
         setMyJobs(myJobs.filter((job) => job._id !== jobId));
         setMessage('Job deleted successfully.');
       } catch (error) {
