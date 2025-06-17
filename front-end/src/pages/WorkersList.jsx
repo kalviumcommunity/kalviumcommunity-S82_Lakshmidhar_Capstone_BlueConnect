@@ -11,7 +11,7 @@ const WorkersList = () => {
   const handleSearch = async (filters) => {
     setLoading(true);
     try {
-      const { data } = await axios.get('http://localhost:3516/api/worker-profile', { params: filters });
+      const { data } = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile', { params: filters });
       setFilteredWorkers(data);
       setLoading(false);
     } catch (err) {

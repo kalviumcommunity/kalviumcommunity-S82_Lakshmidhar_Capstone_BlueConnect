@@ -9,7 +9,7 @@ const JobsList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:3516/api/jobs')
+    axios.get('https://capstone-backend-65es.onrender.com/api/jobs')
       .then(res => {
         setJobs(res.data);
         setFilteredJobs(res.data);

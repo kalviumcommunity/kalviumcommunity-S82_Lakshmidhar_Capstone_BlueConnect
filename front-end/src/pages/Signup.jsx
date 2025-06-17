@@ -64,7 +64,7 @@ const SignUp = () => {
     };
 
     try {
-      const res = await axios.post('http://localhost:3516/api/auth/signup', payload);
+      const res = await axios.post('https://capstone-backend-65es.onrender.com/api/auth/signup', payload);
       toast.success('Registration successful!');
 
       const { token, ...user } = res.data;

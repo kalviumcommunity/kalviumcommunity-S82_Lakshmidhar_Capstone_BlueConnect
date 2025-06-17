@@ -17,12 +17,12 @@ const WorkerProfileForm = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:3516/api/worker-profile/status', {
+        const res = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile/status', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         if (res.data.exists) {
-          const profileData = await axios.get('http://localhost:3516/api/worker-profile', {
+          const profileData = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile', {
             headers: { Authorization: `Bearer ${token}` }
           });
           setProfile(profileData.data);
@@ -55,7 +55,7 @@ const WorkerProfileForm = () => {
         skills: form.skills.split(',').map(skill => skill.trim())
       };
 
-      const url = 'http://localhost:3516/api/worker-profile';
+      const url = 'https://capstone-backend-65es.onrender.com/api/worker-profile';
       const method = profile ? 'put' : 'post';
 
       await axios[method](url, payload, {

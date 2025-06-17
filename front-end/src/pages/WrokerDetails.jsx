@@ -15,7 +15,7 @@ const WorkerDetails = () => {
   useEffect(() => {
     const fetchWorkerDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3516/api/worker-profile/${id}`);
+        const response = await axios.get(`https://capstone-backend-65es.onrender.com/api/worker-profile/${id}`);
         setWorker(response.data);
         setLoading(false);
       } catch (err) {

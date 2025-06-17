@@ -7,7 +7,7 @@ const Header = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [role, setRole] = useState(null);
-  const [showMenu, setShowMenu] = useState(false); // ✅ Added this
+  const [showMenu, setShowMenu] = useState(false); 
 
   // Retrieve user from localStorage
   useEffect(() => {

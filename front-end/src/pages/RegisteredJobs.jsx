@@ -9,7 +9,7 @@ const AppliedJobs = () => {
   useEffect(() => {
     const fetchAppliedJobs = async () => {
       try {
-        const res = await axios.get(`http://localhost:3516/api/jobs/applied/${userId}`);
+        const res = await axios.get(`https://capstone-backend-65es.onrender.com/api/jobs/applied/${userId}`);
         setAppliedJobs(res.data.jobs);
       } catch (err) {
         console.error('Error fetching applied jobs', err);

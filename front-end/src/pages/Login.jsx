@@ -14,7 +14,7 @@ const Login = () => {
     setIsSubmitting(true);
   
     try {
-      const res = await axios.post('http://localhost:3516/api/auth/login', {
+      const res = await axios.post('https://capstone-backend-65es.onrender.com/api/auth/login', {
         email,
         password,
       });

@@ -16,7 +16,7 @@ const JobDetails = () => {
 
  
   useEffect(() => {
-    axios.get(`http://localhost:3516/api/jobs/${id}`)
+    axios.get(`https://capstone-backend-65es.onrender.com/api/jobs/${id}`)
       .then(res => setJob(res.data))
       .catch(err => {
         console.error(err);
@@ -30,7 +30,7 @@ const JobDetails = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3516/api/jobs/${id}/apply`, {
+      await axios.post(`https://capstone-backend-65es.onrender.com/api/jobs/${id}/apply`, {
         bidAmount,
         coverLetter
       }, {

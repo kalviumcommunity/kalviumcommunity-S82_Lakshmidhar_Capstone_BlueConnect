@@ -20,14 +20,14 @@ const Home = () => {
 
           if (parsedUser.role === 'worker') {
             const token = localStorage.getItem('token');
-            const profileStatusRes = await axios.get('http://localhost:3516/api/worker-profile/status', {
+            const profileStatusRes = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile/status', {
               headers: { Authorization: `Bearer ${token}` },
             });
             setShowCreateProfile(!profileStatusRes.data.exists);
           }
         }
 
-        const workersRes = await axios.get('http://localhost:3516/api/worker-profile');
+        const workersRes = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile');
         setFeaturedWorkers(workersRes.data);
       } catch (err) {
         console.error('Error loading data', err);
