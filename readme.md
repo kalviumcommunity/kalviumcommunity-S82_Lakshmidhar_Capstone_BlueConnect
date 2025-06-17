@@ -125,5 +125,10 @@ Made with ❤️ by **Lakshmidhar**
 Squad Number: **82**  
 Capstone Repository: `S82_Lakshmidhar_Capstone_BlueConnect`
 
+
+live links
+
+frontend  --> https://capstone-frontend-sandy.vercel.app/
+backend   --> https://capstone-backend-65es.onrender.com
 ---
 
