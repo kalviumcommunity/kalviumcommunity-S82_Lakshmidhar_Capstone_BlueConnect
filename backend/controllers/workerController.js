@@ -1,11 +1,11 @@
 import express from 'express';
 import WorkerProfile from '../models/Worker.js';
-import protect from '../middleware/authMiddleware.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// ✅ Check if profile exists
-router.get('/status', protect, async (req, res) => {
+// Check if profile exists (worker only)
+router.get('/status', protect, restrictTo('worker'), async (req, res) => {
   try {
     const profile = await WorkerProfile.findOne({ userId: req.user._id });
     res.status(200).json({ exists: !!profile });
@@ -14,12 +14,11 @@ router.get('/status', protect, async (req, res) => {
   }
 });
 
-// ✅ Create Worker Profile
-router.post('/', protect, async (req, res) => {
+// Create profile
+router.post('/', protect, restrictTo('worker'), async (req, res) => {
   const { skills, experience, company, hourlyRate } = req.body;
 
   try {
-    // Check if already exists
     const existing = await WorkerProfile.findOne({ userId: req.user._id });
     if (existing) {
       return res.status(400).json({ message: 'Profile already exists' });
@@ -39,7 +38,7 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// ✅ Get All Workers
+// Get all workers (public)
 router.get('/', async (req, res) => {
   try {
     const workers = await WorkerProfile.find().populate('userId', 'name email role');
@@ -49,7 +48,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ Get Single Worker by ID
+// Get single worker
 router.get('/:id', async (req, res) => {
   try {
     const worker = await WorkerProfile.findById(req.params.id).populate('userId', 'name email role');
@@ -62,8 +61,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ Update Worker Profile
-router.put('/', protect, async (req, res) => {
+// Update worker profile
+router.put('/', protect, restrictTo('worker'), async (req, res) => {
   const { skills, experience, company, hourlyRate } = req.body;
 
   try {
@@ -84,8 +83,8 @@ router.put('/', protect, async (req, res) => {
   }
 });
 
-// ✅ Delete Worker Profile
-router.delete('/', protect, async (req, res) => {
+// Delete profile
+router.delete('/', protect, restrictTo('worker'), async (req, res) => {
   try {
     const profile = await WorkerProfile.findOne({ userId: req.user._id });
     if (!profile) {
