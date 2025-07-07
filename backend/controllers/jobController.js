@@ -1,25 +1,17 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import Job from '../models/Job.js';
-import protect from '../middleware/authMiddleware.js';
+import Job from '../models/job.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-
-router.post('/', protect, async (req, res) => {
+// ✅ POST a new job (Only users with role 'user')
+router.post('/', protect, restrictTo('user'), async (req, res) => {
   try {
     const {
-      title,
-      company,
-      location,
-      salary,
-      jobType,
-      description,
-      requirements,
-      contactEmail,
-      category,
-      budget,
-      deadline,
+      title, company, location, salary, jobType,
+      description, requirements, contactEmail,
+      category, budget, deadline,
     } = req.body;
 
     if (!title || !location || !jobType || !description) {
@@ -48,8 +40,30 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
+// ✅ GET all jobs (Public)
+router.get('/', async (req, res) => {
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 });
+    res.status(200).json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-router.get('/my-jobs', protect, async (req, res) => {
+// ✅ GET a job by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id).populate('applicants.workerId', 'name email');
+    if (!job) return res.status(404).json({ message: 'Job not found' });
+
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ✅ GET jobs posted by logged-in user
+router.get('/my-jobs', protect, restrictTo('user'), async (req, res) => {
   try {
     const jobs = await Job.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.json(jobs);
@@ -58,78 +72,8 @@ router.get('/my-jobs', protect, async (req, res) => {
   }
 });
 
-
-router.get('/applied', protect, async (req, res) => {
-  try {
-    const jobs = await Job.find({ 'applicants.workerId': req.user._id });
-    res.json(jobs);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-router.put('/:jobId', protect, async (req, res) => {
-  try {
-    const { jobId } = req.params;
-    const job = await Job.findOne({ _id: jobId, user: req.user._id });
-
-    if (!job) {
-      return res.status(404).json({ error: 'Job not found or unauthorized' });
-    }
-
-    const {
-      title,
-      company,
-      location,
-      salary,
-      jobType,
-      description,
-      requirements,
-      contactEmail,
-      category,
-      budget,
-      deadline,
-    } = req.body;
-
-    job.title = title || job.title;
-    job.company = company || job.company;
-    job.location = location || job.location;
-    job.salary = salary || job.salary;
-    job.jobType = jobType || job.jobType;
-    job.description = description || job.description;
-    job.requirements = requirements || job.requirements;
-    job.contactEmail = contactEmail || job.contactEmail;
-    job.category = category || job.category;
-    job.budget = budget || job.budget;
-    job.deadline = deadline || job.deadline;
-
-    await job.save();
-    res.status(200).json(job);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-
-router.delete('/:jobId', protect, async (req, res) => {
-  try {
-    const { jobId } = req.params;
-    const job = await Job.findOne({ _id: jobId, user: req.user._id });
-
-    if (!job) {
-      return res.status(404).json({ error: 'Job not found or unauthorized' });
-    }
-
-    await job.remove();
-    res.status(200).json({ message: 'Job deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-router.post('/:jobId/apply', protect, async (req, res) => {
+// ✅ POST apply to a job (Only 'worker' can apply)
+router.post('/:jobId/apply', protect, restrictTo('worker'), async (req, res) => {
   try {
     const { jobId } = req.params;
     const { bidAmount, coverLetter } = req.body;
@@ -162,14 +106,35 @@ router.post('/:jobId/apply', protect, async (req, res) => {
   }
 });
 
-router.delete('/:jobId', protect, async (req, res) => {
+// ✅ GET jobs applied by logged-in worker
+router.get('/applied', protect, restrictTo('worker'), async (req, res) => {
   try {
-    const { jobId } = req.params;
-    const job = await Job.findOne({ _id: jobId, user: req.user._id });
+    const jobs = await Job.find({ 'applicants.workerId': req.user._id });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-    if (!job) {
-      return res.status(404).json({ error: 'Job not found or unauthorized' });
-    }
+// ✅ PUT update a job (Only by the creator)
+router.put('/:jobId', protect, restrictTo('user'), async (req, res) => {
+  try {
+    const job = await Job.findOne({ _id: req.params.jobId, user: req.user._id });
+    if (!job) return res.status(404).json({ error: 'Job not found or unauthorized' });
+
+    Object.assign(job, req.body);
+    await job.save();
+    res.status(200).json(job);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ✅ DELETE a job (Only by the creator)
+router.delete('/:jobId', protect, restrictTo('user'), async (req, res) => {
+  try {
+    const job = await Job.findOne({ _id: req.params.jobId, user: req.user._id });
+    if (!job) return res.status(404).json({ error: 'Job not found or unauthorized' });
 
     await job.remove();
     res.status(200).json({ message: 'Job deleted successfully' });
@@ -177,24 +142,5 @@ router.delete('/:jobId', protect, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-router.get('/', async (req, res) => {
-  try {
-    const jobs = await Job.find().sort({ createdAt: -1 });
-    res.status(200).json(jobs);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-router.get('/:id', async (req, res) => {
-  try {
-    const job = await Job.findById(req.params.id).populate('applicants.user', 'name email');
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-    res.json(job);
-  } catch (err) {
-    console.error('Error fetching job:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+
 export default router;
