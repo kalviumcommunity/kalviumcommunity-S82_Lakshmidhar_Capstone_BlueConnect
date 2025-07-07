@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import Job from '../models/Job.js';
+import Job from '../models/job.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();

@@ -1,5 +1,5 @@
 import express from 'express';
-import WorkerProfile from '../models/Worker.js';
+import WorkerProfile from '../models/worker.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
