@@ -4,7 +4,7 @@ import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Check if profile exists (worker only)
+// ✅ Check if profile exists (Only for workers)
 router.get('/status', protect, restrictTo('worker'), async (req, res) => {
   try {
     const profile = await WorkerProfile.findOne({ userId: req.user._id });
@@ -14,7 +14,7 @@ router.get('/status', protect, restrictTo('worker'), async (req, res) => {
   }
 });
 
-// Create profile
+// ✅ Create worker profile (Only once)
 router.post('/', protect, restrictTo('worker'), async (req, res) => {
   const { skills, experience, company, hourlyRate } = req.body;
 
@@ -38,7 +38,7 @@ router.post('/', protect, restrictTo('worker'), async (req, res) => {
   }
 });
 
-// Get all workers (public)
+// ✅ Get all worker profiles (Public route)
 router.get('/', async (req, res) => {
   try {
     const workers = await WorkerProfile.find().populate('userId', 'name email role');
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single worker
+// ✅ Get single worker profile by ID (Public)
 router.get('/:id', async (req, res) => {
   try {
     const worker = await WorkerProfile.findById(req.params.id).populate('userId', 'name email role');
@@ -61,7 +61,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update worker profile
+// ✅ Update profile (Only worker can update their own)
 router.put('/', protect, restrictTo('worker'), async (req, res) => {
   const { skills, experience, company, hourlyRate } = req.body;
 
@@ -71,10 +71,11 @@ router.put('/', protect, restrictTo('worker'), async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    profile.skills = skills || profile.skills;
-    profile.experience = experience || profile.experience;
-    profile.company = company || profile.company;
-    profile.hourlyRate = hourlyRate || profile.hourlyRate;
+    // Update only if provided
+    if (skills) profile.skills = skills;
+    if (experience) profile.experience = experience;
+    if (company) profile.company = company;
+    if (hourlyRate) profile.hourlyRate = hourlyRate;
 
     const updatedProfile = await profile.save();
     res.status(200).json(updatedProfile);
@@ -83,7 +84,7 @@ router.put('/', protect, restrictTo('worker'), async (req, res) => {
   }
 });
 
-// Delete profile
+// ✅ Delete profile (Only worker can delete)
 router.delete('/', protect, restrictTo('worker'), async (req, res) => {
   try {
     const profile = await WorkerProfile.findOne({ userId: req.user._id });

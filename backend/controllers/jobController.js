@@ -5,7 +5,7 @@ import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Create a Job (Only 'user' role can post)
+// ✅ POST a new job (Only users with role 'user')
 router.post('/', protect, restrictTo('user'), async (req, res) => {
   try {
     const {
@@ -20,9 +20,17 @@ router.post('/', protect, restrictTo('user'), async (req, res) => {
 
     const newJob = new Job({
       user: req.user._id,
-      title, company, location, salary, jobType,
-      description, requirements, contactEmail,
-      category, budget, deadline,
+      title,
+      company,
+      location,
+      salary,
+      jobType,
+      description,
+      requirements,
+      contactEmail,
+      category,
+      budget,
+      deadline,
     });
 
     await newJob.save();
@@ -32,7 +40,7 @@ router.post('/', protect, restrictTo('user'), async (req, res) => {
   }
 });
 
-// Get all jobs
+// ✅ GET all jobs (Public)
 router.get('/', async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
@@ -42,18 +50,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get a job by ID
+// ✅ GET a job by ID
 router.get('/:id', async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id).populate('applicants.user', 'name email');
+    const job = await Job.findById(req.params.id).populate('applicants.workerId', 'name email');
     if (!job) return res.status(404).json({ message: 'Job not found' });
+
     res.json(job);
-  } catch (err) {
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Get jobs posted by logged-in user
+// ✅ GET jobs posted by logged-in user
 router.get('/my-jobs', protect, restrictTo('user'), async (req, res) => {
   try {
     const jobs = await Job.find({ user: req.user._id }).sort({ createdAt: -1 });
@@ -63,7 +72,7 @@ router.get('/my-jobs', protect, restrictTo('user'), async (req, res) => {
   }
 });
 
-// Apply to a job (Only 'worker' can apply)
+// ✅ POST apply to a job (Only 'worker' can apply)
 router.post('/:jobId/apply', protect, restrictTo('worker'), async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -97,7 +106,7 @@ router.post('/:jobId/apply', protect, restrictTo('worker'), async (req, res) => 
   }
 });
 
-// Get jobs applied by logged-in worker
+// ✅ GET jobs applied by logged-in worker
 router.get('/applied', protect, restrictTo('worker'), async (req, res) => {
   try {
     const jobs = await Job.find({ 'applicants.workerId': req.user._id });
@@ -107,7 +116,7 @@ router.get('/applied', protect, restrictTo('worker'), async (req, res) => {
   }
 });
 
-// Update a job
+// ✅ PUT update a job (Only by the creator)
 router.put('/:jobId', protect, restrictTo('user'), async (req, res) => {
   try {
     const job = await Job.findOne({ _id: req.params.jobId, user: req.user._id });
@@ -121,7 +130,7 @@ router.put('/:jobId', protect, restrictTo('user'), async (req, res) => {
   }
 });
 
-// Delete a job
+// ✅ DELETE a job (Only by the creator)
 router.delete('/:jobId', protect, restrictTo('user'), async (req, res) => {
   try {
     const job = await Job.findOne({ _id: req.params.jobId, user: req.user._id });
