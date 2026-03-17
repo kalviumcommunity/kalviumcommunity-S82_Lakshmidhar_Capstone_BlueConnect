@@ -26,7 +26,6 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(worker.router)
 app.include_router(job.router)
-app.include_router(gemini.router)
 
 @app.on_event("startup")
 def on_startup():
