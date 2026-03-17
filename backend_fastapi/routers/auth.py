@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from models.user import UserCreate, UserResponse, UserInDB
+from sqlmodel import Session, select
+from models.user import User, UserCreate, UserResponse
+from models.worker import WorkerProfile, WorkerProfileCreate
 from utils.auth import get_password_hash, verify_password, create_access_token
-from config.database import get_db
+from config.database import get_session
 from dependencies import get_current_active_user
-from bson import ObjectId
 
 router = APIRouter(
     prefix="/api/auth",
@@ -16,7 +17,7 @@ class SignupRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str
+    role: str # 'user', 'worker'
     extraFields: Optional[dict] = None
 
 class LoginRequest(BaseModel):
@@ -24,81 +25,81 @@ class LoginRequest(BaseModel):
     password: str
 
 @router.post("/signup", response_model=dict)
-async def signup(user_data: SignupRequest):
-    db = get_db()
-    
+def signup(user_data: SignupRequest, session: Session = Depends(get_session)):
     # Check if user exists
-    existing_user = await db.users.find_one({"email": user_data.email})
+    statement = select(User).where(User.email == user_data.email)
+    existing_user = session.exec(statement).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered."
         )
     
-    # Create user dict
-    user_dict = {
-        "name": user_data.name,
-        "email": user_data.email,
-        "role": user_data.role,
-        "password": get_password_hash(user_data.password),
-        "company": None,
-        "skills": []
-    }
+    # Create user
+    new_user = User(
+        name=user_data.name,
+        email=user_data.email,
+        role=user_data.role,
+        password=get_password_hash(user_data.password)
+    )
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
 
-    # Handle extraFields
-    if user_data.role == "worker" and user_data.extraFields and "skills" in user_data.extraFields:
-         # skills can be list of strings or list of objects with value? Frontend sends list of {value: string} based on original code
-         # "skills": extraFields.skills.map((s) => s.value || s);
-         raw_skills = user_data.extraFields["skills"]
-         if isinstance(raw_skills, list):
-             user_dict["skills"] = [s.get("value", s) if isinstance(s, dict) else s for s in raw_skills]
-
-    if user_data.role == "user" and user_data.extraFields and "company" in user_data.extraFields:
-        user_dict["company"] = user_data.extraFields["company"]
-    
-    # Insert into DB
-    result = await db.users.insert_one(user_dict)
+    # Handle WorkerProfile if role is worker
+    if user_data.role == "worker":
+        skills = []
+        if user_data.extraFields and "skills" in user_data.extraFields:
+            raw_skills = user_data.extraFields["skills"]
+            if isinstance(raw_skills, list):
+                skills = [s.get("value", s) if isinstance(s, dict) else s for s in raw_skills]
+        
+        worker_profile = WorkerProfile(
+            user_id=new_user.id,
+            profession=", ".join(skills) if skills else "General Laborer",
+            location=user_data.extraFields.get("location", "Not specified") if user_data.extraFields else "Not specified",
+            contact=new_user.email # Default for now
+        )
+        session.add(worker_profile)
+        session.commit()
     
     # Create token
-    access_token = create_access_token(data={"id": str(result.inserted_id)})
+    access_token = create_access_token(data={"id": str(new_user.id)})
     
     return {
-        "_id": str(result.inserted_id),
-        "name": user_dict["name"],
-        "email": user_dict["email"],
-        "role": user_dict["role"],
+        "id": new_user.id,
+        "name": new_user.name,
+        "email": new_user.email,
+        "role": new_user.role,
         "token": access_token
     }
 
 @router.post("/login", response_model=dict)
-async def login(login_data: LoginRequest):
-    email = login_data.email
-    password = login_data.password
-    
-    db = get_db()
-    user = await db.users.find_one({"email": email})
+def login(login_data: LoginRequest, session: Session = Depends(get_session)):
+    statement = select(User).where(User.email == login_data.email)
+    user = session.exec(statement).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
         
-    if not verify_password(password, user["password"]):
+    if not verify_password(login_data.password, user.password):
          raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
         
-    access_token = create_access_token(data={"id": str(user["_id"])})
+    access_token = create_access_token(data={"id": str(user.id)})
     
     return {
-        "_id": str(user["_id"]),
-        "name": user["name"],
-        "email": user["email"],
-        "role": user["role"],
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
         "token": access_token
     }
 
 @router.get("/me", response_model=UserResponse)
-async def read_users_me(current_user: UserInDB = Depends(get_current_active_user)):
+def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user

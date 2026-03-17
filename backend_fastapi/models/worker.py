@@ -1,30 +1,23 @@
-from pydantic import BaseModel, Field
 from typing import Optional, List
-from .utils import PyObjectId
-from bson import ObjectId
+from sqlmodel import SQLModel, Field, Relationship
+from .user import User
 
-class WorkerProfileBase(BaseModel):
-    user_id: PyObjectId = Field(alias="userId")
-    skills: List[str] = []
-    experience: str
-    company: Optional[str] = None
-    hourly_rate: float = Field(alias="hourlyRate")
+class WorkerProfileBase(SQLModel):
+    profession: str
+    location: str
+    bio: Optional[str] = None
+    contact: str
+    experience_years: Optional[int] = 0
+
+class WorkerProfile(WorkerProfileBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    
+    user: User = Relationship(back_populates="worker_profile")
 
 class WorkerProfileCreate(WorkerProfileBase):
-    pass
-
-class WorkerProfileInDB(WorkerProfileBase):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    user_id: int
 
 class WorkerProfileResponse(WorkerProfileBase):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    id: int
+    user_id: int

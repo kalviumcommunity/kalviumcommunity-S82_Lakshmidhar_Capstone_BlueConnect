@@ -1,182 +1,156 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jobService } from '../services/api';
+import { Briefcase, MapPin, AlignLeft, DollarSign, Send, CheckCircle } from 'lucide-react';
 
-const JobPostForm = () => {
-  const { jobId } = useParams();
-  const isEditing = !!jobId;
-
+const PostJob = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    company: '',
-    location: '',
-    salary: '',
-    jobType: 'Full-Time',
     description: '',
+    location: '',
     requirements: '',
-    contactEmail: '',
-    category: '',
     budget: '',
-    deadline: '',
   });
-
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [aiUsed, setAiUsed] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-
-  const token = localStorage.getItem('token');
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
-  useEffect(() => {
-    const fetchJob = async () => {
-      if (isEditing) {
-        try {
-          const res = await axios.get(`https://capstone-backend-65es.onrender.com/api/jobs/${jobId}`, config);
-          const job = res.data;
-          setFormData({
-            title: job.title || '',
-            company: job.company || '',
-            location: job.location || '',
-            salary: job.salary || '',
-            jobType: job.jobType || 'Full-Time',
-            description: job.description || '',
-            requirements: job.requirements || '',
-            contactEmail: job.contactEmail || '',
-            category: job.category || '',
-            budget: job.budget || '',
-            deadline: job.deadline?.split('T')[0] || '',
-          });
-        } catch (error) {
-          setMessage('Failed to load job data for editing');
-        }
-      }
-    };
-
-    fetchJob();
-  }, [isEditing, jobId]);
-
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
-
     try {
-      if (isEditing) {
-        await axios.put(`https://capstone-backend-65es.onrender.com/api/jobs/${jobId}`, formData, config);
-        setMessage('Job updated successfully!');
-      } else {
-        await axios.post('https://capstone-backend-65es.onrender.com/api/jobs', formData, config);
-        setMessage('Job posted successfully!');
-        setFormData({
-          title: '',
-          company: '',
-          location: '',
-          salary: '',
-          jobType: 'Full-Time',
-          description: '',
-          requirements: '',
-          contactEmail: '',
-          category: '',
-          budget: '',
-          deadline: '',
-        });
-        setAiUsed(false);
-      }
+      await jobService.createJob({
+        ...formData,
+        budget: parseFloat(formData.budget) || 0,
+      });
+      setSuccess(true);
+      setTimeout(() => navigate('/my-jobs'), 2000);
     } catch (err) {
-      setMessage(err.response?.data?.error || 'Something went wrong');
+      console.error(err);
+      alert('Failed to post job. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const handleAIAutofill = async () => {
-    if (!formData.title || !formData.category) {
-      setMessage('Title and Category are required for AI suggestions');
-      return;
-    }
-
-    setAiLoading(true);
-    setMessage('');
-    try {
-      const descPrompt = `You are a professional recruiter. Write a detailed and engaging job description for the position of "${formData.title}" in the "${formData.category}" category.`;
-      const reqPrompt = `Provide a clear, bullet-point list of requirements for the job title "${formData.title}" under the "${formData.category}" category.`;
-
-      const [descRes, reqRes] = await Promise.all([
-        axios.post('http://localhost:3516/api/google/autocomplete', { prompt: descPrompt }),
-        axios.post('http://localhost:3516/api/google/autocomplete', { prompt: reqPrompt }),
-      ]);
-
-      setFormData((prev) => ({
-        ...prev,
-        description: descRes.data.suggestion.trim(),
-        requirements: reqRes.data.suggestion.trim(),
-      }));
-
-      setAiUsed(true);
-      setMessage('AI autofill completed successfully!');
-    } catch (err) {
-      setMessage('AI suggestion failed. Please try again.');
-    }
-    setAiLoading(false);
-  };
+  if (success) {
+    return (
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center text-center">
+        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
+          <CheckCircle size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-gray-900 mb-2">Job Posted Successfully!</h2>
+        <p className="text-gray-500 text-lg">Your request is now live. Redirecting to your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-4">
-      <h2 className="text-xl font-bold">{isEditing ? 'Update Job' : 'Post a New Job'}</h2>
+    <div className="bg-gray-50 min-h-screen py-16">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 p-8 md:p-12">
+            <div className="mb-10 text-center md:text-left">
+              <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Post a Job Request</h1>
+              <p className="text-gray-500 text-lg">Describe what you need, and the best professionals will find you.</p>
+            </div>
 
-      <input name="title" placeholder="Job Title" required onChange={handleChange} value={formData.title} className="w-full p-2 border rounded" />
-      <input name="company" placeholder="Company" onChange={handleChange} value={formData.company} className="w-full p-2 border rounded" />
-      <input name="location" placeholder="Location" required onChange={handleChange} value={formData.location} className="w-full p-2 border rounded" />
-      <input name="salary" placeholder="Salary" onChange={handleChange} value={formData.salary} className="w-full p-2 border rounded" />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="flex items-center text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+                    <Briefcase size={16} className="mr-2 text-blue-600" />
+                    Job Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Master Plumber Needed for Renovations"
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition duration-200 font-medium text-gray-900"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  />
+                </div>
 
-      <select name="jobType" required onChange={handleChange} value={formData.jobType} className="w-full p-2 border rounded">
-        <option>Full-Time</option>
-        <option>Part-Time</option>
-        <option>Internship</option>
-        <option>Freelance</option>
-      </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="flex items-center text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+                      <MapPin size={16} className="mr-2 text-blue-600" />
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Downtown Los Angeles"
+                      className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition duration-200 font-medium text-gray-900"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+                      <DollarSign size={16} className="mr-2 text-blue-600" />
+                      Estimate Budget ($)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g. 250"
+                      className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition duration-200 font-medium text-gray-900"
+                      value={formData.budget}
+                      onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                    />
+                  </div>
+                </div>
 
-      <textarea name="description" placeholder="Job Description" required onChange={handleChange} value={formData.description} className="w-full p-2 border rounded" />
-      <textarea name="requirements" placeholder="Requirements" onChange={handleChange} value={formData.requirements} className="w-full p-2 border rounded" />
+                <div>
+                  <label className="flex items-center text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+                    <AlignLeft size={16} className="mr-2 text-blue-600" />
+                    Detailed Description
+                  </label>
+                  <textarea
+                    required
+                    rows="5"
+                    placeholder="Describe the task and expectations..."
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition duration-200 font-medium text-gray-900 resize-none"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
 
-      {!aiUsed && (
-        <button
-          type="button"
-          onClick={handleAIAutofill}
-          disabled={aiLoading || !formData.title || !formData.category}
-          className={`w-full p-2 rounded ${aiLoading ? 'bg-gray-400 text-white' : 'bg-green-600 text-white'}`}
-        >
-          {aiLoading ? 'Generating with AI...' : 'Autofill with AI'}
-        </button>
-      )}
+                <div>
+                  <label className="flex items-center text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">
+                    <CheckCircle size={16} className="mr-2 text-blue-600" />
+                    Special Requirements
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Must bring own tools, weekend availability"
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition duration-200 font-medium text-gray-900"
+                    value={formData.requirements}
+                    onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                  />
+                </div>
+              </div>
 
-      {aiUsed && <p className="text-green-600 text-center text-sm">✔ AI autofill completed</p>}
-
-      <input name="contactEmail" placeholder="Contact Email" onChange={handleChange} value={formData.contactEmail} className="w-full p-2 border rounded" />
-      <input name="category" placeholder="Category" onChange={handleChange} value={formData.category} className="w-full p-2 border rounded" />
-      <input name="budget" type="number" placeholder="Budget (optional)" onChange={handleChange} value={formData.budget} className="w-full p-2 border rounded" />
-      <input name="deadline" type="date" onChange={handleChange} value={formData.deadline} className="w-full p-2 border rounded" />
-
-      <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white p-2 rounded">
-        {loading ? (isEditing ? 'Updating...' : 'Posting...') : (isEditing ? 'Update Job' : 'Post Job')}
-      </button>
-
-      {message && <p className={`text-center ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
-    </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-5 bg-blue-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transform hover:-translate-y-1 transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:transform-none"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white mr-3"></div>
+                ) : (
+                  <Send size={20} className="mr-3" />
+                )}
+                Post Job Now
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default JobPostForm;
+export default PostJob;

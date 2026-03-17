@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { workerService, jobService } from '../services/api';
 import WorkerCard from '../components/WorkerCard';
-import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [user, setUser] = useState(null);
   const [featuredWorkers, setFeaturedWorkers] = useState([]);
-  const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -15,23 +14,14 @@ const Home = () => {
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-
-          if (parsedUser.role === 'worker') {
-            const token = localStorage.getItem('token');
-            const profileStatusRes = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile/status', {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setShowCreateProfile(!profileStatusRes.data.exists);
-          }
+          setUser(JSON.parse(storedUser));
         }
 
-        const workersRes = await axios.get('https://capstone-backend-65es.onrender.com/api/worker-profile');
-        setFeaturedWorkers(workersRes.data);
+        const { data } = await workerService.getWorkers({ profession: '', location: '' });
+        setFeaturedWorkers(data.slice(0, 4)); // Show first 4 workers
       } catch (err) {
         console.error('Error loading data', err);
-        setError('Failed to load data. Please try again later.');
+        setError('Failed to load featured workers.');
       } finally {
         setLoading(false);
       }
@@ -44,76 +34,101 @@ const Home = () => {
   const role = user?.role;
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Find Skilled Blue Collar Workers For Your Next Project
-            </h1>
-            <p className="text-xl mb-8 text-blue-100">
-              Connect with reliable professionals for plumbing, electrical work, carpentry, and more.
-            </p>
+    <div className="bg-white">
+      {/* Hero Section - Premium Glassmorphism Design */}
+      <section className="relative overflow-hidden bg-white pt-16 pb-32">
+        <div className="absolute inset-x-0 top-[-10rem] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[-20rem]">
+          <div className="relative left-1/2 -z-10 aspect-[1155/678] w-[36.125rem] max-w-none -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#93c5fd] to-[#2563eb] opacity-30 sm:left-[calc(50%-40rem)] sm:w-[72.1875rem]"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 text-center">
+          <div className="inline-block px-4 py-1.5 mb-6 text-sm font-semibold tracking-wide text-blue-600 uppercase bg-blue-50 rounded-full">
+            The Ultimate Workforce Marketplace
+          </div>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-8 tracking-tight">
+            Connect with the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Perfect Worker</span> for Any Task
+          </h1>
+          <p className="max-w-2xl mx-auto text-xl text-gray-600 mb-12 leading-relaxed">
+            BlueConnect bridges the gap between skilled professionals and people who need their expertise. Real-time tracking, secure payments, and verified reviews.
+          </p>
 
-            <div className="flex flex-col md:flex-row justify-center gap-4">
-              {!isLoggedIn ? (
-                <>
-                  <Link to="/signup" className="px-6 py-3 bg-white text-blue-700 font-medium rounded-md hover:bg-blue-50 transition">
-                    Join Now
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+            {!isLoggedIn ? (
+              <>
+                <Link to="/signup" className="px-8 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transform hover:-translate-y-1 transition duration-200">
+                  Join the Marketplace
+                </Link>
+                <Link to="/workers" className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-100 font-bold rounded-xl hover:border-blue-100 hover:bg-blue-50/50 transform hover:-translate-y-1 transition duration-200">
+                  Browse Professionals
+                </Link>
+              </>
+            ) : (
+              <>
+                {role === 'user' ? (
+                  <Link to="/post-job" className="px-8 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transform hover:-translate-y-1 transition duration-200">
+                    Post a Service Request
                   </Link>
-                  <Link to="/workers" className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 transition">
-                    Browse Workers
+                ) : (
+                  <Link to="/find-jobs" className="px-8 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transform hover:-translate-y-1 transition duration-200">
+                    Find Available Work
                   </Link>
-                </>
-              ) : role === 'employer' ? (
-                <>
-                  <Link to="/post-job" className="px-6 py-3 bg-white text-blue-700 font-medium rounded-md hover:bg-blue-50 transition">
-                    Post a Job
-                  </Link>
-                  <Link to="/my-jobs" className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 transition">
-                    My Posted Jobs
-                  </Link>
-                </>
-              ) : role === 'worker' ? (
-                <>
-                  <Link to="/jobs" className="px-6 py-3 bg-white text-blue-700 font-medium rounded-md hover:bg-blue-50 transition">
-                    Find Jobs
-                  </Link>
-                  <Link to="/applied-jobs" className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 transition">
-                    My Applications
-                  </Link>
-                  {showCreateProfile && (
-                    <Link to="/create-worker-profile" className="px-6 py-3 bg-yellow-400 text-black font-medium rounded-md hover:bg-yellow-300 transition">
-                      Create Profile
-                    </Link>
-                  )}
-                </>
-              ) : null}
+                )}
+                <Link to="/workers" className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-100 font-bold rounded-xl hover:border-blue-100 hover:bg-blue-50/50 transform hover:-translate-y-1 transition duration-200">
+                  Explore Talent
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-12 bg-gray-50 border-y border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-4xl font-black text-blue-600 mb-1">500+</div>
+              <div className="text-gray-500 font-medium">Verified Workers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-black text-blue-600 mb-1">10k+</div>
+              <div className="text-gray-500 font-medium">Tasks Completed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-black text-blue-600 mb-1">4.9/5</div>
+              <div className="text-gray-500 font-medium">Average Rating</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-black text-blue-600 mb-1">24/7</div>
+              <div className="text-gray-500 font-medium">Service Support</div>
             </div>
           </div>
         </div>
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16 bg-white"
-          style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0)' }}
-        />
       </section>
 
-      {/* Featured Workers Section */}
-      <section className="py-12 bg-gray-100">
+      {/* Featured Professionals */}
+      <section className="py-24">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-6">Featured Workers</h2>
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Top-Rated Professionals</h2>
+              <p className="mt-2 text-lg text-gray-500">Highly skilled and verified experts for your needs.</p>
+            </div>
+            <Link to="/workers" className="hidden md:flex items-center text-blue-600 font-bold hover:text-blue-700">
+              View All <span className="ml-2">→</span>
+            </Link>
+          </div>
 
           {loading ? (
-            <p className="text-center text-gray-600">Loading featured workers...</p>
+             <div className="flex justify-center py-20">
+               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+             </div>
           ) : error ? (
-            <p className="text-center text-red-600">{error}</p>
-          ) : featuredWorkers.length === 0 ? (
-            <p className="text-center text-gray-600">No workers available at the moment.</p>
+            <p className="text-center text-red-500 bg-red-50 py-10 rounded-xl">{error}</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredWorkers.map((worker) => (
-                <WorkerCard key={worker._id} worker={worker} />
+                <WorkerCard key={worker.id} worker={worker} />
               ))}
             </div>
           )}

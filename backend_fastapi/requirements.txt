@@ -1,6 +1,7 @@
 fastapi
 uvicorn
-motor
+sqlmodel
+psycopg2-binary
 pydantic
 python-jose[cryptography]
 passlib[bcrypt]

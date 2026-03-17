@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config.database import connect_db, close_db
+from config.database import init_db
 from dotenv import load_dotenv
-from routers import auth, worker, job, gemini
+from routers import auth, worker, job
 import os
 
 load_dotenv()
@@ -29,12 +29,8 @@ app.include_router(job.router)
 app.include_router(gemini.router)
 
 @app.on_event("startup")
-async def startup_db_client():
-    await connect_db()
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    await close_db()
+def on_startup():
+    init_db()
 
 @app.get("/")
 async def root():

@@ -1,46 +1,29 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
-from .utils import PyObjectId
-from bson import ObjectId
+from .user import User
 
-class Applicant(BaseModel):
-    user: Optional[PyObjectId] = Field(default=None) # user_id
-    bid_amount: Optional[float] = Field(alias="bidAmount", default=None)
-    cover_letter: Optional[str] = Field(alias="coverLetter", default=None)
-    applied_at: datetime = Field(alias="appliedAt", default_factory=datetime.now)
-
-class JobBase(BaseModel):
-    user: PyObjectId # user_id
+class JobRequestBase(SQLModel):
     title: str
-    company: Optional[str] = None
-    location: str
-    salary: Optional[str] = None
-    job_type: Optional[str] = Field(alias="jobType", default=None) # enum: ['Full-Time', 'Part-Time', 'Internship', 'Freelance']
     description: str
+    location: str
+    status: str = Field(default="pending") # 'pending', 'accepted', 'completed', 'cancelled'
     requirements: Optional[str] = None
-    contact_email: Optional[str] = Field(alias="contactEmail", default=None)
-    category: Optional[str] = None
-    budget: Optional[float] = None
-    posted_date: datetime = Field(alias="postedDate", default_factory=datetime.now)
-    deadline: Optional[datetime] = None
-    applicants: List[Applicant] = []
+    budget: Optional[float] = 0.0
 
-class JobCreate(JobBase):
+class JobRequest(JobRequestBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    requester_id: int = Field(foreign_key="user.id")
+    worker_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    requester: User = Relationship(back_populates="job_requests", sa_relationship_kwargs={"foreign_keys": "JobRequest.requester_id"})
+
+class JobRequestCreate(JobRequestBase):
     pass
 
-class JobInDB(JobBase):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
-class JobResponse(JobBase):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+class JobRequestResponse(JobRequestBase):
+    id: int
+    requester_id: int
+    worker_id: Optional[int]
+    created_at: datetime
